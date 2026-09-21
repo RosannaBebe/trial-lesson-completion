@@ -6,4 +6,4 @@ Dino English 体验课 L1–L4 完课率看板。可按 UTC 时间窗、人群�
 
 https://rosannabebe.github.io/trial-lesson-completion/
 
-最近一次更新：2026-09-21。
+最近一次更新：2026-09-22。
