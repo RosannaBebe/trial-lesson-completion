@@ -68,7 +68,8 @@ td.num,th.num{text-align:right;white-space:nowrap}
 .chart{border:1px solid var(--line);padding:8px 8px 4px;overflow-x:auto}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:6px 0}
 .dot{display:inline-block;width:8px;height:8px;margin-right:4px}
-.section{margin-top:28px}
+.section{margin-top:28px;padding-top:12px;scroll-margin-top:72px}
+.section + .section{border-top:1px solid var(--line);padding-top:24px}
 .sec-nav{position:sticky;top:0;z-index:25;background:#fff;padding:12px 0 10px;margin:20px 0 0;border-bottom:1px solid var(--line)}
 .sec-nav .pills{gap:6px}
 .analysis-card{border:1px solid var(--line);padding:12px 14px;margin:10px 0 0}
@@ -12107,8 +12108,29 @@ function render(){
   const navHtml = `<div class="sec-nav" id="sec-nav"><div class="pills">${nav.map(item=>
     `<button type="button" class="pill ${state.section===item.id?"active":""}" data-section="${item.id}">${esc(item.label)}</button>`
   ).join("")}</div></div>`;
-  const current = sections[state.section] || "";
-  document.getElementById("app").innerHTML = lead + navHtml + `<div class="section" id="${state.section}" style="margin-top:16px">${current}</div>`;
+  const body = nav.map(item=>`<section class="section" id="${item.id}">${sections[item.id]}</section>`).join("");
+  document.getElementById("app").innerHTML = lead + navHtml + body;
+  bindSectionNav();
+}
+
+function markSection(id){
+  if(!id) return;
+  state.section = id;
+  document.querySelectorAll("#sec-nav [data-section]").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.section===id);
+  });
+}
+
+function bindSectionNav(){
+  const items = [...document.querySelectorAll("#app .section[id]")];
+  if(!items.length) return;
+  const io = new IntersectionObserver((entries)=>{
+    const vis = entries
+      .filter(item=>item.isIntersecting)
+      .sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+    if(vis) markSection(vis.target.id);
+  }, {rootMargin:"-80px 0px -55% 0px", threshold:[0.12, 0.3, 0.6]});
+  items.forEach(el=>io.observe(el));
 }
 
 document.getElementById("level-pills").addEventListener("click", e=>{
@@ -12118,10 +12140,9 @@ document.getElementById("level-pills").addEventListener("click", e=>{
 document.getElementById("app").addEventListener("click", e=>{
   const sec = e.target.closest("[data-section]");
   if(sec){
-    state.section = sec.dataset.section;
-    render();
-    const navEl = document.getElementById("sec-nav");
-    if(navEl) navEl.scrollIntoView({block:"start"});
+    markSection(sec.dataset.section);
+    const el = document.getElementById(sec.dataset.section);
+    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
     return;
   }
   const btn = e.target.closest("[data-profile-country]"); if(!btn) return;
