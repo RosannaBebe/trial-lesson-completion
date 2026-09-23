@@ -8,7 +8,11 @@ https://rosannabebe.github.io/trial-lesson-completion/
 
 数据覆盖 2026-08-01 00:00:00 至 2026-09-23 03:47:28 UTC。
 
-上一版备份（2026-09-23 数据已刷新，分析文案与升降用词更新前）：
+上一版备份（分析文案已更新，核心年龄柱改为绿色之前）：
+
+https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-23-analysis.html
+
+更早一版（2026-09-23 数据已刷新，分析文案与升降用词更新前）：
 
 https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-23-data.html
 

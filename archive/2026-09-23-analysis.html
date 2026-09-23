@@ -65,7 +65,6 @@ td.num,th.num{text-align:right;white-space:nowrap}
 .bars{display:flex;align-items:flex-end;gap:10px;height:220px;padding:8px 4px 0}
 .bar{flex:1;min-width:36px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
 .bar .col{width:100%;background:var(--accent);min-height:2px}
-.bar .col.core{background:var(--ok)}
 .bar .n{font-size:11px;margin-bottom:4px}
 .bar .l{font-size:11px;color:var(--muted);margin-top:6px}
 .chart{border:1px solid var(--line);padding:8px 8px 4px;overflow-x:auto}
@@ -11724,16 +11723,12 @@ function renderControls(){
   ].map(([v,l])=>`<button class="pill ${state.preset===v?"active":""}" data-preset="${v}">${l}</button>`).join("");
 }
 
-function isCoreAgeLabel(label){
-  return CORE_AGE_YEARS.has(label) || label==="6–8";
-}
-function barChart(categories, values, markCore){
+function barChart(categories, values){
   const max = 100;
   return `<div class="bars">` + categories.map((c,i)=>{
     const v = values[i] || 0;
     const h = Math.max(2, (v/max)*180);
-    const core = markCore && isCoreAgeLabel(c);
-    return `<div class="bar"><div class="n">${v.toFixed(1)}%</div><div class="col${core?" core":""}" style="height:${h}px"></div><div class="l">${esc(c)}</div></div>`;
+    return `<div class="bar"><div class="n">${v.toFixed(1)}%</div><div class="col" style="height:${h}px"></div><div class="l">${esc(c)}</div></div>`;
   }).join("") + `</div>`;
 }
 
@@ -12844,7 +12839,7 @@ function render(){
   }
 
   if(ageRows.length){
-    addSec("sec-age", "年龄段完课率", `<h2>年龄段完课率</h2><div class="legend"><span><i class="dot" style="background:var(--ok)"></i>核心年龄 5 / 6 / 7 / 8，以及旧口径 6–8</span><span><i class="dot" style="background:var(--accent)"></i>其他年龄</span></div>${barChart(ageRows.map(([a])=>a||"未知"), ageRows.map(([,m])=>rate(m)||0), true)}${tableHTML(["年龄","开课","完课","完课率"], ageRows.map(([a,m])=>[a||"年龄未知",String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">横轴：Onboarding 年龄${useYearlyAge?"（9/14 起按单岁 + 13+ 细拆）":"段"}；纵轴：课堂完课率（%）。绿色柱是核心年龄。${useYearlyAge?"此窗口起点在 9/14 及以后，按每年一档。仍看到 3–5 / 6–8 / 9–12 的，是改版前填的旧口径。":"窗口起点早于 9/14，仍按 3–5 / 6–8 / 9–12。"} ${esc(caption)}</p>`);
+    addSec("sec-age", "年龄段完课率", `<h2>年龄段完课率</h2>${barChart(ageRows.map(([a])=>a||"未知"), ageRows.map(([,m])=>rate(m)||0))}${tableHTML(["年龄","开课","完课","完课率"], ageRows.map(([a,m])=>[a||"年龄未知",String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">横轴：Onboarding 年龄${useYearlyAge?"（9/14 起按单岁 + 13+ 细拆）":"段"}；纵轴：课堂完课率（%）。${useYearlyAge?"此窗口起点在 9/14 及以后，按每年一档。仍看到 3–5 / 6–8 / 9–12 的，是改版前填的旧口径。":"窗口起点早于 9/14，仍按 3–5 / 6–8 / 9–12。"} ${esc(caption)}</p>`);
     if(abilityRows.length){
       addSec("sec-ability", "英文能力完课率", `<h2>英文能力完课率</h2>${barChart(abilityRows.map(([a])=>a), abilityRows.map(([,m])=>rate(m)||0))}${tableHTML(["英文能力","开课","完课","完课率"], abilityRows.map(([a,m])=>[a,String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">能力字段覆盖近期干净样本，更早窗口可能偏少。${esc(caption)}</p>`);
     }
