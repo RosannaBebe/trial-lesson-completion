@@ -52,8 +52,8 @@ input,select{width:100%;height:32px;border:1px solid #d5d5d5;padding:0 8px;font:
 .stat.warn .v{color:var(--warn)}
 .stat.info .v{color:#1d3f99}
 .stat .cmp{position:absolute;right:10px;bottom:8px;font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:baseline}
-.stat .cmp .up,.delta-up{color:var(--ok)}
-.stat .cmp .down,.delta-down{color:#b42318}
+.stat .cmp .up{color:var(--ok)}
+.stat .cmp .down{color:#b42318}
 .callout{padding:10px 12px;font-size:13px;line-height:1.55;margin:12px 0;border:1px solid}
 .callout.info{background:var(--info);border-color:var(--infob)}
 .callout.warn{background:var(--warnbg);border-color:var(--warnb)}
@@ -11373,13 +11373,10 @@ function detail(metric){ return metric.started ? `${rateText(metric)} · ${count
 function focusDetail(curr, prev){
   if(!curr.started) return "—";
   const a = rate(curr), b = rate(prev);
-  if(a===null || b===null) return esc(detail(curr));
+  if(a===null || b===null) return detail(curr);
   const d = Number((a-b).toFixed(1));
-  const base = esc(detail(curr));
-  if(d===0) return `${base}（0.0pp）`;
-  const cls = d>0 ? "delta-up" : "delta-down";
-  const text = (d>0?"+":"")+d.toFixed(1)+"pp";
-  return `${base}（<span class="${cls}">${text}</span>）`;
+  if(d===0) return `${detail(curr)}（平 0.0pp）`;
+  return `${detail(curr)}（${d>0?"升 +":"降 "}${Math.abs(d).toFixed(1)}pp）`;
 }
 function utcStampText(ms){
   const d = new Date(ms);
@@ -11813,310 +11810,181 @@ function dimItems(currMap, prevMap, currN, prevN){
   }
   return items;
 }
-const ANALYSIS_FOCUS = ["马来西亚","越南","韩国","沙特阿拉伯"];
-const ANALYSIS_WATCH = ["泰国","印度尼西亚"];
-function rowsMetric(rows, end){
-  const metric = emptyMetric();
-  for(const row of rows) add(metric, isCompleted(row, end, state.wrapupComplete));
-  return metric;
-}
-function shareOf(part, whole){
-  return whole ? Number((100*part/whole).toFixed(1)) : 0;
-}
-function dragAgainst(groupRate, levelRate, groupShare){
-  if(groupRate===null || levelRate===null || groupShare<=0) return 0;
-  return Number(((levelRate-groupRate)*groupShare/100).toFixed(1));
-}
-function countryBucket(name){
-  if(ANALYSIS_FOCUS.indexOf(name)!==-1 || ANALYSIS_WATCH.indexOf(name)!==-1) return name;
-  return "其他";
-}
-function focusCountrySentence(item, levelNow){
-  const name = countryShortName(item.key);
-  if(!item.now.started){
-    return item.prev.started>=5 ? `${name}本期没有开课（上期 ${countText(item.prev)}）` : "";
-  }
-  const bits = [`${name} ${fmtRateSafe(item.nowRate)} · ${countText(item.now)}，占开课 ${item.nowShare.toFixed(1)}%`];
-  if(item.prev.started>=5 && item.prevRate!==null && item.nowRate!==null){
-    bits.push(`上期 ${item.prevRate.toFixed(1)}%（${signedPp(item.nowRate-item.prevRate)}）`);
-    if(Math.abs(item.nowShare-item.prevShare)>=4){
-      bits.push(`占比 ${item.prevShare.toFixed(1)}%→${item.nowShare.toFixed(1)}%（${signedPp(item.nowShare-item.prevShare)}）`);
-    }
-  }
-  if(item.nowRate!==null && levelNow!==null && Math.abs(item.nowRate-levelNow)>=3){
-    const gap = Math.abs(item.nowRate-levelNow).toFixed(1);
-    if(item.nowRate<levelNow){
-      const drag = dragAgainst(item.nowRate, levelNow, item.nowShare);
-      bits.push(drag>=0.3 ? `低于本级别 ${gap}pp，把整体往下拉 ${drag.toFixed(1)}pp` : `低于本级别 ${gap}pp`);
-    } else {
-      bits.push(`高于本级别 ${gap}pp`);
-    }
-  }
-  return bits.join("，");
-}
-function dragLine(name, now, prev, nowShare, levelNow){
-  const nowRate = rate(now);
-  if(now.started<8 || nowRate===null || levelNow===null || nowRate>=levelNow) return "";
-  const drag = dragAgainst(nowRate, levelNow, nowShare);
-  if(drag<0.4) return "";
-  const label = name==="其他" ? "其他国家" : countryShortName(name);
-  let text = `${label} ${nowRate.toFixed(1)}% · ${countText(now)}，占开课 ${nowShare.toFixed(1)}%，把整体往下拉 ${drag.toFixed(1)}pp`;
-  const prevRate = rate(prev);
-  if(prev.started>=5 && prevRate!==null) text += `，上期 ${prevRate.toFixed(1)}%（${signedPp(nowRate-prevRate)}）`;
-  return text;
-}
-function countryAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd){
+function countryAnalysisText(items, currMetric){
+  const usable = items.filter(x=>x.now.started>=8 || x.prev.started>=8);
+  if(!usable.length) return "窗口内各国开课都偏少，还看不清谁在拉这个级别。";
+  const rateUp = usable.filter(x=>x.prevRate!==null && x.nowRate!==null && x.nowRate-x.prevRate>=3 && x.now.started>=8)
+    .sort((a,b)=>(b.nowRate-b.prevRate)-(a.nowRate-a.prevRate));
+  const rateDown = usable.filter(x=>x.prevRate!==null && x.nowRate!==null && x.nowRate-x.prevRate<=-3 && (x.now.started>=8 || x.prev.started>=8))
+    .sort((a,b)=>(a.nowRate-a.prevRate)-(b.nowRate-b.prevRate));
+  const mixGrow = usable.filter(x=>x.nowShare-x.prevShare>=4)
+    .sort((a,b)=>(b.nowShare-b.prevShare)-(a.nowShare-a.prevShare));
+  const mixShrink = usable.filter(x=>x.nowShare-x.prevShare<=-4)
+    .sort((a,b)=>(a.nowShare-a.prevShare)-(b.nowShare-b.prevShare));
   const levelNow = rate(currMetric);
-  function bucketRows(rows, key){
-    if(key==="其他") return rows.filter(r=>countryBucket(r.country||"未知")==="其他");
-    return rows.filter(r=>(r.country||"未知")===key);
-  }
-  function pack(key){
-    const now = rowsMetric(bucketRows(currRows, key), rangeEnd);
-    const prev = rowsMetric(bucketRows(prevRows, key), prevEnd);
-    return {
-      key, now, prev,
-      nowShare: shareOf(now.started, currMetric.started),
-      prevShare: shareOf(prev.started, prevMetric.started),
-      nowRate: rate(now),
-      prevRate: rate(prev),
-    };
-  }
-  const focusLines = ANALYSIS_FOCUS.map(key=>focusCountrySentence(pack(key), levelNow)).filter(Boolean);
-  const dragLines = [];
-  for(const key of ANALYSIS_WATCH){
-    const item = pack(key);
-    const line = dragLine(key, item.now, item.prev, item.nowShare, levelNow);
-    if(line) dragLines.push(line);
-  }
-  const otherRowsNow = bucketRows(currRows, "其他");
-  const byName = new Map();
-  for(const row of otherRowsNow){
-    const name = row.country||"未知";
-    if(!byName.has(name)) byName.set(name, []);
-    byName.get(name).push(row);
-  }
-  const otherDrags = [];
-  for(const [name, rows] of byName){
-    const now = rowsMetric(rows, rangeEnd);
-    const prev = rowsMetric(prevRows.filter(r=>(r.country||"未知")===name), prevEnd);
-    const nowShare = shareOf(now.started, currMetric.started);
-    const line = dragLine(name, now, prev, nowShare, levelNow);
-    if(line) otherDrags.push({line, drag: dragAgainst(rate(now), levelNow, nowShare)});
-  }
-  otherDrags.sort((a,b)=>b.drag-a.drag);
-  if(otherDrags.length) dragLines.push(...otherDrags.slice(0,2).map(x=>x.line));
-  else {
-    const item = pack("其他");
-    const line = dragLine("其他", item.now, item.prev, item.nowShare, levelNow);
-    if(line) dragLines.push(line);
-  }
   const parts = [];
-  parts.push(focusLines.length ? "马来、越南、韩国、沙特："+focusLines.join("；") : "马来、越南、韩国、沙特在这个窗口几乎没有开课");
-  if(dragLines.length) parts.push("泰国、印尼或其他国家里，把整体往下拉的是"+joinCn(dragLines));
+  if(rateUp.length){
+    parts.push("完课率在升的是"+joinCn(rateUp.slice(0,3).map(x=>
+      `${countryShortName(x.key)} ${x.prevRate.toFixed(1)}%→${x.nowRate.toFixed(1)}%`
+    )));
+  }
+  if(rateDown.length){
+    parts.push("完课率在降的是"+joinCn(rateDown.slice(0,3).map(x=>
+      `${countryShortName(x.key)} ${x.prevRate.toFixed(1)}%→${x.nowRate.toFixed(1)}%`
+    )));
+  }
+  if(mixGrow.length){
+    parts.push("开课变多的是"+joinCn(mixGrow.slice(0,2).map(x=>{
+      const vs = (x.nowRate!==null && levelNow!==null)
+        ? (x.nowRate>=levelNow ? "，本国完课率高于本级别，在往上拉" : "，本国完课率低于本级别，在往下拉")
+        : "";
+      return `${countryShortName(x.key)} 占比 ${x.prevShare.toFixed(1)}%→${x.nowShare.toFixed(1)}%`+vs;
+    })));
+  }
+  if(mixShrink.length){
+    parts.push("开课变少的是"+joinCn(mixShrink.slice(0,2).map(x=>
+      `${countryShortName(x.key)} 占比 ${x.prevShare.toFixed(1)}%→${x.nowShare.toFixed(1)}%`
+    )));
+  }
+  if(!parts.length){
+    const top = [...usable].sort((a,b)=>Math.abs(b.contrib)-Math.abs(a.contrib))[0];
+    if(!top || Math.abs(top.contrib)<0.4) return "各国对级别完课率的贡献都很小，涨跌是多国小幅叠加。";
+    return `贡献最大的是${countryShortName(top.key)}（${signedPp(top.contrib)}）。`;
+  }
   return parts.join("。")+"。";
 }
-function abilityShifts(nowRows, prevRows, rangeEnd, prevEnd){
-  const keys = new Set();
-  nowRows.forEach(r=>keys.add(abilityLabel(r.ability)));
-  prevRows.forEach(r=>keys.add(abilityLabel(r.ability)));
-  const out = [];
-  for(const key of keys){
-    if(!key || key==="能力未知") continue;
-    const now = rowsMetric(nowRows.filter(r=>abilityLabel(r.ability)===key), rangeEnd);
-    const prev = rowsMetric(prevRows.filter(r=>abilityLabel(r.ability)===key), prevEnd);
-    if(now.started+prev.started<8) continue;
-    const nowShare = shareOf(now.started, nowRows.length);
-    const prevShare = shareOf(prev.started, prevRows.length);
-    const nowRate = rate(now);
-    const prevRate = rate(prev);
-    const shareDelta = Number((nowShare-prevShare).toFixed(1));
-    const rateDelta = nowRate!==null && prevRate!==null ? Number((nowRate-prevRate).toFixed(1)) : 0;
-    if(Math.abs(shareDelta)<4 && Math.abs(rateDelta)<5) continue;
-    out.push({key, now, nowShare, prevShare, nowRate, prevRate, shareDelta, rateDelta});
-  }
-  out.sort((a,b)=>(Math.abs(b.shareDelta)+Math.abs(b.rateDelta))-(Math.abs(a.shareDelta)+Math.abs(a.rateDelta)));
-  return out;
-}
-function abilityShiftText(item){
-  let text = `${item.key} 占比 ${item.prevShare.toFixed(1)}%→${item.nowShare.toFixed(1)}%（${signedPp(item.shareDelta)}）`;
-  if(item.nowRate!==null) text += `，完课率 ${item.nowRate.toFixed(1)}%`;
-  if(item.prevRate!==null && item.nowRate!==null) text += `（${signedPp(item.rateDelta)}）`;
-  return text;
-}
-function profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd){
+function profileAnalysisText(ageItems, abilityItems, currRows, prevRows, currMetric, prevMetric){
   const parts = [];
-  const levelNow = rate(currMetric);
-  const coreNowRows = currRows.filter(isCoreAge);
-  const corePrevRows = prevRows.filter(isCoreAge);
-  const coreNow = rowsMetric(coreNowRows, rangeEnd);
-  const corePrev = rowsMetric(corePrevRows, prevEnd);
-  const restNow = rowsMetric(currRows.filter(r=>!isCoreAge(r)), rangeEnd);
-  const coreShareNow = shareOf(coreNow.started, currMetric.started);
-  const coreSharePrev = shareOf(corePrev.started, prevMetric.started);
-  const coreRate = rate(coreNow);
-  const corePrevRate = rate(corePrev);
-  const restRate = rate(restNow);
   if(state.age==="all"){
-    if(!coreNow.started){
-      parts.push("本期没有识别到 5–8 岁核心用户");
+    const notable = ageItems
+      .filter(x=>x.now.started+x.prev.started>=8 && Math.abs(x.nowShare-x.prevShare)>=2)
+      .sort((a,b)=>Math.abs(b.nowShare-b.prevShare)-Math.abs(a.nowShare-a.prevShare));
+    if(!notable.length){
+      parts.push("年龄结构几乎没变");
     } else {
-      let sentence = `核心用户是 5–8 岁，占开课 ${coreShareNow.toFixed(1)}%（${countText(coreNow)}），完课率 ${fmtRateSafe(coreRate)}`;
-      if(corePrev.started>=5 && coreRate!==null && corePrevRate!==null){
-        const shareDelta = Number((coreShareNow-coreSharePrev).toFixed(1));
-        const rateDelta = Number((coreRate-corePrevRate).toFixed(1));
-        sentence += `。相对上期，占比 ${coreSharePrev.toFixed(1)}%→${coreShareNow.toFixed(1)}%（${signedPp(shareDelta)}），完课率 ${corePrevRate.toFixed(1)}%→${coreRate.toFixed(1)}%（${signedPp(rateDelta)}）`;
-        if(Math.abs(shareDelta)<3 && Math.abs(rateDelta)<3) sentence += "，5–8 岁的占比和完课率变化不大";
-      }
-      if(restNow.started>=8 && restRate!==null && levelNow!==null && restRate<levelNow){
-        const restShare = shareOf(restNow.started, currMetric.started);
-        const drag = dragAgainst(restRate, levelNow, restShare);
-        if(drag>=0.4){
-          sentence += `。5–8 岁以外完课率 ${restRate.toFixed(1)}%（${countText(restNow)}，占 ${restShare.toFixed(1)}%），把整体往下拉 ${drag.toFixed(1)}pp`;
-        }
-      }
-      parts.push(sentence);
-      const yearShift = ["5","6","7","8"].map(year=>{
-        const now = rowsMetric(coreNowRows.filter(r=>(r.ageYear||"")===year), rangeEnd);
-        const prev = rowsMetric(corePrevRows.filter(r=>(r.ageYear||"")===year), prevEnd);
-        return {
-          year, now,
-          nowShare: shareOf(now.started, coreNow.started),
-          prevShare: shareOf(prev.started, corePrev.started),
-        };
-      }).filter(item=>Math.abs(item.nowShare-item.prevShare)>=5 && item.now.started>=5);
-      if(yearShift.length && coreNow.started>=20){
-        parts.push("5–8 岁内部，"+joinCn(yearShift.slice(0,3).map(item=>{
-          const nowRate = rate(item.now);
-          return `${item.year} 岁占比 ${item.prevShare.toFixed(1)}%→${item.nowShare.toFixed(1)}%（${signedPp(item.nowShare-item.prevShare)}）${nowRate===null?"":"，完课率 "+nowRate.toFixed(1)+"%"}`;
+      parts.push("年龄上，"+joinCn(notable.slice(0,3).map(x=>{
+        const extra = x.nowRate===null ? "" : `，本期完课率 ${x.nowRate.toFixed(1)}%`;
+        return `${x.key||"年龄未知"} 占比 ${x.prevShare.toFixed(1)}%→${x.nowShare.toFixed(1)}%（${signedPp(x.nowShare-x.prevShare)}）${extra}`;
+      })));
+    }
+  }
+  if(state.ability==="all"){
+    const knownNow = currRows.filter(r=>r.ability).length;
+    const knownPrev = prevRows.filter(r=>r.ability).length;
+    const covNow = currMetric.started ? Number((100*knownNow/currMetric.started).toFixed(1)) : 0;
+    const covPrev = prevMetric.started ? Number((100*knownPrev/prevMetric.started).toFixed(1)) : 0;
+    if(covNow<30 || covPrev<30){
+      parts.push(`英文能力回填不足（本期 ${covNow}%，上期 ${covPrev}%），不能拿能力结构解释这期完课率`);
+    } else {
+      const nowDen = knownNow;
+      const prevDen = knownPrev;
+      const known = abilityItems.filter(x=>x.key!=="能力未知" && (x.now.started>=8 || x.prev.started>=8)).map(x=>({
+        ...x,
+        nowShare: nowDen ? Number((100*x.now.started/nowDen).toFixed(1)) : 0,
+        prevShare: prevDen ? Number((100*x.prev.started/prevDen).toFixed(1)) : 0,
+      })).filter(x=>Math.abs(x.nowShare-x.prevShare)>=3)
+        .sort((a,b)=>Math.abs(b.nowShare-b.prevShare)-Math.abs(a.nowShare-a.prevShare));
+      if(!known.length){
+        parts.push("已填写英文能力的用户结构变化不大");
+      } else {
+        parts.push("在已填写英文能力的用户里，"+joinCn(known.slice(0,3).map(x=>{
+          const extra = x.nowRate===null ? "" : `，本期完课率 ${x.nowRate.toFixed(1)}%`;
+          return `${x.key} 占比 ${x.prevShare.toFixed(1)}%→${x.nowShare.toFixed(1)}%（${signedPp(x.nowShare-x.prevShare)}）${extra}`;
         })));
       }
-    }
-  }
-  if(state.ability==="all"){
-    const knownNow = currRows.filter(r=>r.ability);
-    const knownPrev = prevRows.filter(r=>r.ability);
-    const covNow = shareOf(knownNow.length, currMetric.started);
-    const covPrev = shareOf(knownPrev.length, prevMetric.started);
-    const coreKnownNow = coreNowRows.filter(r=>r.ability);
-    const coreKnownPrev = corePrevRows.filter(r=>r.ability);
-    const coreCov = shareOf(coreKnownNow.length, coreNow.started);
-    if(Math.abs(covNow-covPrev)>=10){
-      parts.push(`英文能力回填比例 ${covPrev.toFixed(1)}%→${covNow.toFixed(1)}%，未回填不能当成能力变化`);
-    }
-    if(covNow<30 && coreCov<30){
-      parts.push(`英文能力回填不足（本期 ${covNow.toFixed(1)}%，5–8 岁 ${coreCov.toFixed(1)}%），不能拿能力结构解释完课率`);
-    } else {
-      const useCore = coreCov>=30;
-      const shifts = abilityShifts(useCore?coreKnownNow:knownNow, useCore?coreKnownPrev:knownPrev, rangeEnd, prevEnd);
-      const scope = useCore ? "5–8 岁里已填写英文能力的用户" : "已填写英文能力的用户";
-      parts.push(shifts.length ? scope+"里，"+joinCn(shifts.slice(0,3).map(abilityShiftText)) : scope+"里，能力结构和完课率相对上期变化不大");
-    }
-  }
-  const crosses = [];
-  for(const name of ANALYSIS_FOCUS){
-    const now = rowsMetric(currRows.filter(r=>r.country===name && isCoreAge(r)), rangeEnd);
-    const prev = rowsMetric(prevRows.filter(r=>r.country===name && isCoreAge(r)), prevEnd);
-    const countryNow = rowsMetric(currRows.filter(r=>r.country===name), rangeEnd);
-    if(now.started<6 && prev.started<6) continue;
-    crosses.push({name, now, prev, countryRate: rate(countryNow), nowRate: rate(now), prevRate: rate(prev)});
-  }
-  if(crosses.length){
-    parts.push("四国 × 5–8 岁："+crosses.map(item=>{
-      let text = `${countryShortName(item.name)} ${fmtRateSafe(item.nowRate)} · ${countText(item.now)}`;
-      if(item.countryRate!==null && item.nowRate!==null && Math.abs(item.nowRate-item.countryRate)>=3){
-        text += item.nowRate<item.countryRate ? "，低于该国整体" : "，高于该国整体";
-      }
-      if(item.prev.started>=5 && item.prevRate!==null && item.nowRate!==null){
-        text += `，上期 ${item.prevRate.toFixed(1)}%（${signedPp(item.nowRate-item.prevRate)}）`;
-      }
-      return text;
-    }).join("；"));
-  }
-  const watchCore = [];
-  for(const name of ["泰国","印度尼西亚","其他"]){
-    const now = rowsMetric(currRows.filter(r=>countryBucket(r.country||"未知")===name && isCoreAge(r)), rangeEnd);
-    const nowRate = rate(now);
-    const nowShare = shareOf(now.started, currMetric.started);
-    const drag = dragAgainst(nowRate, levelNow, nowShare);
-    if(now.started>=8 && drag>=0.4){
-      const label = name==="其他" ? "其他国家" : countryShortName(name);
-      watchCore.push(`${label}的 5–8 岁 ${nowRate.toFixed(1)}%（${countText(now)}），把整体往下拉 ${drag.toFixed(1)}pp`);
-    }
-  }
-  if(watchCore.length) parts.push(joinCn(watchCore));
-  if(state.ability==="all"){
-    const abilityCross = [];
-    for(const name of ANALYSIS_FOCUS){
-      const countryRows = currRows.filter(r=>r.country===name);
-      const known = countryRows.filter(r=>r.ability);
-      const knownPrev = prevRows.filter(r=>r.country===name && r.ability);
-      if(countryRows.length<8 || shareOf(known.length, countryRows.length)<30) continue;
-      const abilities = new Set(known.map(r=>abilityLabel(r.ability)));
-      for(const ability of abilities){
-        if(!ability || ability==="能力未知") continue;
-        const now = rowsMetric(known.filter(r=>abilityLabel(r.ability)===ability), rangeEnd);
-        const prev = rowsMetric(knownPrev.filter(r=>abilityLabel(r.ability)===ability), prevEnd);
-        const nowRate = rate(now);
-        const prevRate = rate(prev);
-        if(now.started<6 || nowRate===null) continue;
-        const shareNow = shareOf(now.started, known.length);
-        const sharePrev = shareOf(prev.started, knownPrev.length);
-        const shareDelta = Number((shareNow-sharePrev).toFixed(1));
-        const rateDelta = prevRate===null ? 0 : Number((nowRate-prevRate).toFixed(1));
-        if(!(prev.started>=5 && (Math.abs(rateDelta)>=5 || Math.abs(shareDelta)>=8)) && !(nowRate<40 && now.started>=8)) continue;
-        abilityCross.push({name, ability, now, nowRate, prevRate, shareNow, shareDelta, prevStarted: prev.started});
-      }
-    }
-    abilityCross.sort((a,b)=>a.nowRate-b.nowRate);
-    if(abilityCross.length){
-      parts.push("国家 × 英文能力："+joinCn(abilityCross.slice(0,3).map(item=>{
-        let text = `${countryShortName(item.name)} × ${item.ability} ${item.nowRate.toFixed(1)}%（${countText(item.now)}，占该国已填能力 ${item.shareNow.toFixed(1)}%）`;
-        if(item.prevStarted>=5 && item.prevRate!==null) text += `，上期 ${item.prevRate.toFixed(1)}%（${signedPp(item.nowRate-item.prevRate)}）`;
-        if(item.prevStarted>=5 && Math.abs(item.shareDelta)>=8) text += `，占比 ${signedPp(item.shareDelta)}`;
-        return text;
-      })));
     }
   }
   if(!parts.length) return "当前筛选已经固定了年龄或英文能力，这里不再重复拆画像结构。";
   return parts.join("。")+"。";
 }
 const TARGET_RATE = 50;
-function gapToTargetText(level, currRows, currMetric, rangeEnd){
+function gapPull(item, target){
+  if(item.nowRate===null) return 0;
+  return Number(((target-item.nowRate)*item.nowShare/100).toFixed(1));
+}
+function gapToTargetText(level, currMetric, countryItems, ageItems, abilityItems, currRows, rangeEnd){
   if(level!==3 && level!==4) return "";
   const currR = rate(currMetric);
   if(currR===null) return "";
   if(currMetric.started<15) return `本期开课只有 ${currMetric.started} 节，距 50% 的缺口还不稳定。`;
   const gap = Number((TARGET_RATE-currR).toFixed(1));
-  if(gap<=0) return `已经达到或超过 50%（${currR.toFixed(1)}%）。`;
-  const holes = [];
-  function consider(label, rows){
-    const metric = rowsMetric(rows, rangeEnd);
-    const nowRate = rate(metric);
-    const nowShare = shareOf(metric.started, currMetric.started);
-    const pull = dragAgainst(nowRate, TARGET_RATE, nowShare);
-    if(metric.started>=8 && nowRate!==null && nowRate<TARGET_RATE && pull>=0.8){
-      holes.push({label, nowRate, nowShare, pull, metric});
+  const countries = countryItems.filter(x=>x.now.started>=8 && x.nowRate!==null)
+    .map(x=>Object.assign({}, x, {pull: gapPull(x, TARGET_RATE)}))
+    .sort((a,b)=>b.pull-a.pull);
+  const drags = countries.filter(x=>x.nowRate<TARGET_RATE && x.pull>=0.8).slice(0,3);
+  const near = countries.filter(x=>x.nowRate>=40).sort((a,b)=>b.nowRate-a.nowRate).slice(0,2);
+  const parts = [];
+  if(gap<=0){
+    parts.push(`已经达到或超过 50% 目标（${currR.toFixed(1)}%）`);
+  } else {
+    parts.push(`目标 50%，本期 ${currR.toFixed(1)}%，还差 ${gap.toFixed(1)}pp`);
+    if(drags.length){
+      parts.push("主要缺口在"+joinCn(drags.map(x=>
+        `${countryShortName(x.key)}完课率 ${x.nowRate.toFixed(1)}%、占开课 ${x.nowShare.toFixed(1)}%，占距目标缺口 ${x.pull.toFixed(1)}pp`
+      )));
+    }
+    if(near.length){
+      parts.push("相对接近目标的是"+joinCn(near.map(x=>
+        `${countryShortName(x.key)} ${x.nowRate.toFixed(1)}%`
+      ))+"，仍未到 50%");
     }
   }
-  for(const name of ANALYSIS_FOCUS) consider(countryShortName(name), currRows.filter(r=>r.country===name));
-  for(const name of ANALYSIS_WATCH) consider(countryShortName(name), currRows.filter(r=>r.country===name));
-  consider("其他国家", currRows.filter(r=>countryBucket(r.country||"未知")==="其他"));
-  consider("5–8 岁", currRows.filter(isCoreAge));
-  consider("5–8 岁以外", currRows.filter(r=>!isCoreAge(r)));
-  for(const name of ANALYSIS_FOCUS){
-    consider(countryShortName(name)+" × 5–8 岁", currRows.filter(r=>r.country===name && isCoreAge(r)));
+  if(state.age==="all"){
+    const ages = ageItems.filter(x=>x.now.started>=8 && x.nowRate!==null && x.nowRate<TARGET_RATE)
+      .map(x=>Object.assign({}, x, {pull: gapPull(x, TARGET_RATE)}))
+      .sort((a,b)=>b.pull-a.pull);
+    if(ages.length){
+      parts.push("画像上，"+joinCn(ages.slice(0,2).map(x=>
+        `${x.key} 占开课 ${x.nowShare.toFixed(1)}%、完课率 ${x.nowRate.toFixed(1)}%`
+      )));
+    }
   }
-  holes.sort((a,b)=>b.pull-a.pull);
-  const top = holes.slice(0,3);
-  let text = `目标 50%，本期 ${currR.toFixed(1)}%，还差 ${gap.toFixed(1)}pp`;
-  if(top.length){
-    text += "。相对 50% 拉动更大的是"+joinCn(top.map(item=>
-      `${item.label} ${item.nowRate.toFixed(1)}%（${countText(item.metric)}，占开课 ${item.nowShare.toFixed(1)}%，拉动 ${item.pull.toFixed(1)}pp）`
-    ));
+  const cross = [];
+  for(const [key, metric] of groupMetrics(currRows, rangeEnd, r=>(r.country||"未知")+"\t"+(r.age||"年龄未知"))){
+    if(metric.started<12) continue;
+    const nowRate = rate(metric);
+    if(nowRate===null || nowRate>=40) continue;
+    const [country, age] = key.split("\t");
+    cross.push({
+      country, age, metric, nowRate,
+      share: Number((100*metric.started/currMetric.started).toFixed(1)),
+    });
   }
-  text += "。要提到 50%，先看这些低完课率、高开课占比叠加的人群课中体验，而不是先改分班";
-  return text+"。";
+  cross.sort((a,b)=>a.nowRate-b.nowRate || b.metric.started-a.metric.started);
+  if(cross.length){
+    parts.push("最低的交叉是"+joinCn(cross.slice(0,3).map(x=>
+      `${countryShortName(x.country)} × ${x.age} ${x.nowRate.toFixed(1)}%（${countText(x.metric)}，占开课 ${x.share.toFixed(1)}%）`
+    )));
+  }
+  const knownNow = currRows.filter(r=>r.ability).length;
+  const covNow = Number((100*knownNow/currMetric.started).toFixed(1));
+  if(state.ability==="all" && covNow>=30){
+    const weakAbility = abilityItems.filter(x=>x.key!=="能力未知" && x.now.started>=10 && x.nowRate!==null && x.nowRate<TARGET_RATE)
+      .sort((a,b)=>a.nowRate-b.nowRate);
+    if(weakAbility.length){
+      parts.push("已填写能力里，低于目标较多的是"+joinCn(weakAbility.slice(0,2).map(x=>
+        `${x.key} ${x.nowRate.toFixed(1)}%（${countText(x.now)}）`
+      )));
+    }
+    const abilityCross = [];
+    for(const [key, metric] of groupMetrics(currRows.filter(r=>r.ability), rangeEnd, r=>(r.country||"未知")+"\t"+abilityLabel(r.ability))){
+      if(metric.started<12) continue;
+      const nowRate = rate(metric);
+      if(nowRate===null || nowRate>=35) continue;
+      const [country, ability] = key.split("\t");
+      abilityCross.push({country, ability, metric, nowRate});
+    }
+    abilityCross.sort((a,b)=>a.nowRate-b.nowRate);
+    if(abilityCross.length){
+      parts.push("其中"+joinCn(abilityCross.slice(0,2).map(x=>
+        `${countryShortName(x.country)} × ${x.ability} 只有 ${x.nowRate.toFixed(1)}%`
+      )));
+    }
+  } else if(state.ability==="all" && covNow<30){
+    parts.push(`本期英文能力只回填了 ${covNow}%，能力交叉不能用来解释距 50% 的缺口`);
+  }
+  parts.push("要提到 50%，先看这些低完课率、高开课占比叠加的人群课中体验，而不是先改分班");
+  return parts.join("。")+"。";
 }
 function analyzeLevel(levelInfo, currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd){
   const currR = rate(currMetric);
@@ -12129,22 +11997,54 @@ function analyzeLevel(levelInfo, currRows, prevRows, currMetric, prevMetric, ran
   if(!currMetric.started){
     return {title, prevCmp, country:"本期没有开课。", profile:"", gap:""};
   }
-  const noPrev = !prevMetric.started;
+  const countryItems = dimItems(
+    groupMetrics(currRows, rangeEnd, r=>r.country||"未知"),
+    groupMetrics(prevRows, prevEnd, r=>r.country||"未知"),
+    currMetric.started,
+    prevMetric.started
+  );
+  const ageItems = dimItems(
+    groupMetrics(currRows, rangeEnd, r=>r.age||"年龄未知"),
+    groupMetrics(prevRows, prevEnd, r=>r.age||"年龄未知"),
+    currMetric.started,
+    prevMetric.started
+  );
+  const abilityItems = dimItems(
+    groupMetrics(currRows, rangeEnd, r=>abilityLabel(r.ability)),
+    groupMetrics(prevRows, prevEnd, r=>abilityLabel(r.ability)),
+    currMetric.started,
+    prevMetric.started
+  );
+  if(!prevMetric.started){
+    const topCountries = countryItems.filter(x=>x.now.started>=8).sort((a,b)=>b.now.started-a.now.started).slice(0,3);
+    const topAges = ageItems.filter(x=>x.now.started>=8).sort((a,b)=>b.nowShare-a.nowShare).slice(0,3);
+    return {
+      title,
+      prevCmp,
+      country: topCountries.length
+        ? "上期该级别没有对照课堂。本期开课较多的是"+joinCn(topCountries.map(x=>`${countryShortName(x.key)} ${x.nowShare.toFixed(1)}% · ${fmtRateSafe(x.nowRate)}`))+"。"
+        : "上期该级别没有对照课堂。",
+      profile: topAges.length
+        ? "本期年龄以"+joinCn(topAges.map(x=>`${x.key} ${x.nowShare.toFixed(1)}%`))+"为主。"
+        : "",
+      gap: gapToTargetText(levelInfo.level, currMetric, countryItems, ageItems, abilityItems, currRows, rangeEnd),
+    };
+  }
   return {
     title,
     prevCmp,
-    country: (noPrev ? "上期该级别没有对照课堂。" : "")+countryAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd),
-    profile: profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd),
-    gap: gapToTargetText(levelInfo.level, currRows, currMetric, rangeEnd),
+    country: countryAnalysisText(countryItems, currMetric),
+    profile: profileAnalysisText(ageItems, abilityItems, currRows, prevRows, currMetric, prevMetric),
+    gap: gapToTargetText(levelInfo.level, currMetric, countryItems, ageItems, abilityItems, currRows, rangeEnd),
   };
 }
 function fmtRateSafe(value){
   return value===null ? "—" : value.toFixed(1)+"%";
 }
 
-function tableHTML(headers, rows, numFrom=1, htmlFrom){
+function tableHTML(headers, rows, numFrom=1){
   const head = headers.map((h,i)=>`<th${i>=numFrom?' class="num"':""}>${esc(h)}</th>`).join("");
-  const body = rows.map(r=>`<tr>${r.map((c,i)=>`<td${i>=numFrom?' class="num"':""}>${htmlFrom!=null && i>=htmlFrom ? c : esc(c)}</td>`).join("")}</tr>`).join("");
+  const body = rows.map(r=>`<tr>${r.map((c,i)=>`<td${i>=numFrom?' class="num"':""}>${esc(c)}</td>`).join("")}</tr>`).join("");
   return `<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -12364,7 +12264,7 @@ function render(){
   }).join("");
   addSec("sec-analysis", "完课率分析", `
     <h2>完课率分析</h2>
-    <p class="tiny">对照上一相同时长周期 ${esc(prevLabel)}。改 UTC 窗口或筛选后，这一节按当前数字重写。先写马来、越南、韩国、沙特的完课率和开课占比；泰国、印尼或其他国家只有在把本级别完课率往下拉时才写出。核心用户按 5–8 岁看占比和完课率相对上期的变化，并和这四个国家交叉。英文能力只在已回填的课里对比，回填不足时不拿能力结构解释完课。L3 / L4 另写距 50% 的缺口。</p>
+    <p class="tiny">对照上一相同时长周期 ${esc(prevLabel)}。改 UTC 窗口或筛选后，这一节按当前数字重写。国家同时看该国完课率变化和开课占比变化；英文能力回填不足时，不拿能力结构解释完课。L3 / L4 另写距 50% 目标的缺口，点名仍远低于目标的国家和画像。</p>
     ${analysisCards}
   `);
 
@@ -12623,10 +12523,9 @@ function render(){
           l.name,
           ...FOCUS_COUNTRIES.map(c=>focusDetail(focusByCountry[c.name][l.level], prevFocusByCountry[c.name][l.level])),
         ]),
-        2,
         2
       )}
-      <p class="tiny">横轴：体验课 Level；纵轴：课堂完课率（%）。只看马来西亚、越南、韩国、沙特阿拉伯，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点，+ 为上升，− 为下降。</p>
+      <p class="tiny">横轴：体验课 Level；纵轴：课堂完课率（%）。只看马来西亚、越南、韩国、沙特阿拉伯，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点（升/降）。</p>
     `);
     addSec("sec-profile", "核心国家 · 年龄 × 英文能力"+ (selectedLevel?" · "+currentLevel.label:""), `
       <h2>核心国家 · 年龄 × 英文能力${selectedLevel?" · "+currentLevel.label:""}</h2>
