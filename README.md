@@ -6,9 +6,13 @@ Dino English 体验课 L1–L4 完课率看板。可按 UTC 时间窗、人群�
 
 https://rosannabebe.github.io/trial-lesson-completion/
 
-数据覆盖 2026-08-01 00:00:00 至 2026-09-24 03:13:03 UTC。测试账号继续排除，含此前三个只存在于测试环境的账号。
+数据覆盖 2026-08-01 00:00:00 至 2026-09-24 10:11:35 UTC。测试账号继续排除，含此前三个只存在于测试环境的账号。
 
-上一版备份（数据至 2026-09-23 03:47:28 UTC，已排除这三个测试账号）：
+上一版备份（数据至 2026-09-24 03:13:03 UTC）：
+
+https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-24-0313.html
+
+更早一版（数据至 2026-09-23 03:47:28 UTC，已排除这三个测试账号）：
 
 https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-23-test-filter.html
 
@@ -32,4 +36,4 @@ https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-23.html
 
 https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-22.html
 
-最近一次更新：2026-09-24。
+最近一次更新：2026-09-24 18:11 CST。
