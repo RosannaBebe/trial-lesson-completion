@@ -14024,7 +14024,6 @@ function render(){
           <div class="stat info"><div class="k">${esc(meta.label)} V2 直接导入 · ${countText(vv2)}</div><div class="v">${rateText(vv2)}</div></div>
           <div class="stat"><div class="k">${esc(meta.label)} V2相对V1</div><div class="v">${vgap==="—"?"—":(Number(vgap)>0?"+":"")+vgap+"pp"}</div></div>
         </div>
-        ${lv===1 ? "" : `
         <h3 style="margin:16px 0 8px">画像分布（占该版本开课）</h3>
         <div class="grid funnel-pair">
           <div>
@@ -14044,8 +14043,7 @@ function render(){
             ${versionShareChart(v1rows, v2rows, row=>osLabel(row.os), ["Android","iOS","其他"])}
           </div>
         </div>
-        <p class="tiny">画像来自 Onboarding 年龄 / 英文能力，以及开课课堂的国家和设备系统。纵轴是占该版本开课的比例。L1 不展示画像。切 Level Tab 只换这一段，不改漏斗、也不改上方完课率筛选。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。</p>
-        `}
+        <p class="tiny">画像来自 Onboarding 年龄 / 英文能力，以及开课课堂的国家和设备系统。纵轴是占该版本开课的比例。切 Level Tab 只换这一段，不改漏斗、也不改上方完课率筛选。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。</p>
       `);
     }
 
