@@ -12669,30 +12669,6 @@ function ageBucket(row, useYear){
   if(useYear) return row.ageYear || row.age || "年龄未知";
   return row.age || "年龄未知";
 }
-const AGE_YEAR_ONLY = ["3","4","5","6","7","8","9","10","11","12","13","14","15","13+"];
-function isYearlyAgeLabel(age){
-  return AGE_YEAR_ONLY.indexOf(age)!==-1 || /^\d+$/.test(age||"");
-}
-function crossAge(label){
-  const i = String(label).indexOf(" × ");
-  return i===-1 ? String(label) : String(label).slice(0,i);
-}
-function crossAbility(label){
-  const i = String(label).indexOf(" × ");
-  return i===-1 ? "" : String(label).slice(i+3);
-}
-function sortAgeAbilityRows(rows, ageOrder){
-  const abilityOrder = [...Object.values(ABILITY_LABEL), "能力未知"];
-  return rows.slice().sort((a,b)=>{
-    const ao = sortKey(ageOrder, crossAge(a[0]));
-    const bo = sortKey(ageOrder, crossAge(b[0]));
-    if(ao!==bo) return ao-bo;
-    const aa = sortKey(abilityOrder, crossAbility(a[0]));
-    const bb = sortKey(abilityOrder, crossAbility(b[0]));
-    if(aa!==bb) return aa-bb;
-    return b[1].started-a[1].started;
-  });
-}
 const CORE_AGE_YEARS = new Set(["5","6","7","8"]);
 function isCoreAge(row){
   const year = row.ageYear || "";
@@ -13552,15 +13528,7 @@ function render(){
     }
   }
   const abilityRows = tableFromMap(metricMap(scoped.filter(r=>r.ability), rangeEnd, r=>abilityLabel(r.ability)), Object.values(ABILITY_LABEL));
-  const ageAbilityAll = tableFromMap(metricMap(scoped.filter(r=>r.ability), rangeEnd, r=>`${ageBucket(r, useYearlyAge)} × ${abilityLabel(r.ability)}`), []);
-  const ageAbilityYearRows = useYearlyAge
-    ? sortAgeAbilityRows(ageAbilityAll.filter(([label])=>isYearlyAgeLabel(crossAge(label))), AGE_YEAR_ONLY)
-    : [];
-  const ageAbilityBandRows = sortAgeAbilityRows(
-    ageAbilityAll.filter(([label])=>!useYearlyAge || !isYearlyAgeLabel(crossAge(label))),
-    AGE_ORDER
-  );
-  const ageAbilityRows = ageAbilityYearRows.concat(ageAbilityBandRows);
+  const ageAbilityRows = tableFromMap(metricMap(scoped.filter(r=>r.ability), rangeEnd, r=>`${r.age||"年龄未知"} × ${abilityLabel(r.ability)}`), []).sort((a,b)=>b[1].started-a[1].started);
   const focusBase = CLASSES.filter(row =>
     firstInWindow(row,rangeStart,rangeEnd)!==null &&
     inAge(row,state.age,state.exclude13) && inAbility(row,state.ability) && inTiers(row,state.tiers)
@@ -14173,13 +14141,7 @@ function render(){
   }
 
   if(ageAbilityRows.length){
-    const yearTable = ageAbilityYearRows.length
-      ? `<h3>9/14 及之后 · 单岁年龄</h3>${tableHTML(["交叉","开课","完课","完课率"], ageAbilityYearRows.map(([l,m])=>[l,String(m.started),String(m.completed),rateText(m)]),1)}`
-      : "";
-    const bandTable = ageAbilityBandRows.length
-      ? `${ageAbilityYearRows.length ? "<h3>历史年龄段</h3>" : ""}${tableHTML(["交叉","开课","完课","完课率"], ageAbilityBandRows.map(([l,m])=>[l,String(m.started),String(m.completed),rateText(m)]),1)}`
-      : "";
-    addSec("sec-age-ability", "年龄 × 英文能力", `<h2>年龄 × 英文能力</h2>${yearTable}${bandTable}<p class="tiny">只统计窗口内已回填英文能力的课堂。${useYearlyAge ? "窗口起点在 9/14 及以后时，上面是单岁交叉，下面是改版前未拆开的年龄段。" : ""}${esc(caption)}</p>`);
+    addSec("sec-age-ability", "年龄 × 英文能力", `<h2>年龄 × 英文能力</h2>${tableHTML(["交叉","开课","完课","完课率"], ageAbilityRows.map(([l,m])=>[l,String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">只统计窗口内已回填英文能力的课堂。${esc(caption)}</p>`);
   }
 
   if(deviceInner){
