@@ -6,9 +6,13 @@ Dino English 体验课 L1–L4 完课率看板。可按 UTC 时间窗、人群�
 
 https://rosannabebe.github.io/trial-lesson-completion/
 
-数据覆盖 2026-08-01 00:00:00 至 2026-09-28 02:10:40 UTC。测试账号继续排除，含此前三个只存在于测试环境的账号。完课只看 `trigger + type=trial + result=complete`，已去掉「用户到达 wrap-up 即算作完课」选项。
+数据覆盖 2026-08-01 00:00:00 至 2026-09-29 02:13:57 UTC。测试账号继续排除。完课只看 `trigger + type=trial + result=complete`。L1–L4 的 Template 触达漏斗按 V1 / V2 并列。
 
-上一版备份（数据同样至 2026-09-28 02:10:40 UTC，仍带 wrap-up 勾选框）：
+上一版备份（数据至 2026-09-28 02:10:40 UTC，漏斗仅 L1 分版本）：
+
+https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-28-0210-l1-funnel.html
+
+更早一版（数据同样至 2026-09-28 02:10:40 UTC，仍带 wrap-up 勾选框）：
 
 https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-28-0210.html
 
