@@ -12880,7 +12880,7 @@ function firstInWindow(row, rangeStart, rangeEnd){
 }
 
 const state = {
-  preset: "last7full",
+  preset: "current",
   startDate: "2026-09-14",
   startTime: "00:00:00",
   endDate: DATA_END.split(" ")[0],
@@ -12894,7 +12894,6 @@ const state = {
   levelTab: "all",
   profileCountry: "马来西亚",
   funnelLevel: "1",
-  versionLevel: "1",
   countryOpen: false,
   tierOpen: false,
   section: "sec-rate",
@@ -13962,16 +13961,13 @@ function render(){
     ` : `<p class="tiny">当前筛选下该 Level 没有开课。</p>`}
   `);
     {
-      const lv = Number(state.versionLevel || "1");
-      const meta = LEVELS.find(l=>l.level===lv) || LEVELS[0];
+      const lv = Number(funnelLevel);
+      const meta = funnelMeta || LEVELS.find(l=>l.level===lv) || LEVELS[0];
       const vv1 = versionByLevel[lv].V1;
       const vv2 = versionByLevel[lv].V2;
       const vgap = (rate(vv2)!==null && rate(vv1)!==null) ? (rate(vv2)-rate(vv1)).toFixed(1) : "—";
-      addSec("sec-version", "版本对比 · V1 vs V2", `
-        <h2>版本对比 · V1 vs V2</h2>
-        <div class="pills" style="margin-bottom:10px">
-          ${LEVELS.map(l=>`<button class="pill ${lv===l.level?"active":""}" data-version-level="${l.level}">${l.label} ${l.name}</button>`).join("")}
-        </div>
+      addSec("sec-version", meta.label+" 版本对比 · V1 vs V2", `
+        <h2>${esc(meta.label)} 版本对比 · V1 vs V2</h2>
         <div class="grid g3" style="margin-bottom:12px">
           <div class="stat"><div class="k">${esc(meta.label)} V1 热身开场 · ${countText(vv1)}</div><div class="v">${rateText(vv1)}</div></div>
           <div class="stat info"><div class="k">${esc(meta.label)} V2 直接导入 · ${countText(vv2)}</div><div class="v">${rateText(vv2)}</div></div>
@@ -13989,7 +13985,7 @@ function render(){
           [[meta.label, meta.name, detail(vv1), detail(vv2)]],
           2
         )}
-        <p class="tiny">切 Level Tab 只换这一段对比，不改漏斗、也不改上方完课率筛选。V1=热身开场，V2=直接导入后按词拆练习。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。</p>
+        <p class="tiny">这段跟着漏斗 Level Tab：L1–L4 都已并行 V1 / V2。V1=热身开场，V2=直接导入后按词拆练习。切 Level 只换这一段和漏斗，不改上方完课率筛选。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。</p>
       `);
     }
 
@@ -14141,14 +14137,6 @@ document.getElementById("app").addEventListener("click", e=>{
     if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
     return;
   }
-  const versionBtn = e.target.closest("[data-version-level]");
-  if(versionBtn){
-    state.versionLevel = versionBtn.dataset.versionLevel;
-    render();
-    const el = document.getElementById("sec-version");
-    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-    return;
-  }
   const btn = e.target.closest("[data-profile-country]"); if(!btn) return;
   state.profileCountry = btn.dataset.profileCountry; render();
 });
@@ -14225,7 +14213,6 @@ function normalizeTime(value){
   };
   el.addEventListener("change", apply);
 });
-applyPreset("last7full");
 render();
 </script>
 </body>
