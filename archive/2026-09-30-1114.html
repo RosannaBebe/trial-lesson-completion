@@ -61,7 +61,6 @@ table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0 8px}
 th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
 th{color:#555;font-weight:600;background:#fff;position:sticky;top:0}
 td.num,th.num{text-align:right;white-space:nowrap}
-.rate-hit{color:var(--ok);font-weight:600;background:#d9f2e6;padding:3px 8px;border-radius:4px;display:inline-block}
 .table-wrap{max-height:420px;overflow:auto;border:1px solid var(--line)}
 .bars{display:flex;align-items:flex-end;gap:10px;height:220px;padding:8px 4px 0}
 .bar{flex:1;min-width:36px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
@@ -12813,8 +12812,7 @@ const ABILITY_LABEL = {
   RW:"Can read & write",RT:"Can read & talk",AD:"Advanced",MA:"More advanced",
 };
 const AGE_ORDER = ["3–5","6–8","9–12","13–17","18+","13+","年龄未知",""];
-const AGE_YEAR_ORDER = ["3","4","5","6","7","8","9","10","11","12","13","14","15","13+","3–5","6–8","9–12","13–17","18+","年龄未知",""];
-const AGE_LEVEL_YEARS = ["3","4","5","6","7","8","9","10","11","12","13","14","15"];
+const AGE_YEAR_ORDER = ["3","4","5","6","7","8","9","10","11","12","13+","3–5","6–8","9–12","13–17","18+","年龄未知",""];
 const AGE_YEAR_CUTOFF = Date.parse("2026-09-14T00:00:00Z");
 const COUNTRY_ORDER = ["马来西亚","越南","韩国","沙特阿拉伯","泰国","印度尼西亚"];
 const DAILY_SEGMENTS = [
@@ -12911,12 +12909,6 @@ function rate(metric){ return metric.started ? Number(((metric.completed/metric.
 function rateText(metric){ const v=rate(metric); return v===null ? "—" : v.toFixed(1)+"%"; }
 function countText(metric){ return `${metric.completed}/${metric.started}`; }
 function detail(metric){ return metric.started ? `${rateText(metric)} · ${countText(metric)}` : "—"; }
-function rateHitCell(metric){
-  const text = detail(metric);
-  const v = rate(metric);
-  if(v!==null && v>50) return `<span class="rate-hit">${esc(text)}</span>`;
-  return esc(text);
-}
 function focusDetail(curr, prev){
   if(!curr.started) return "—";
   const a = rate(curr), b = rate(prev);
@@ -13818,13 +13810,6 @@ function render(){
   });
   const useYearlyAge = rangeStart >= AGE_YEAR_CUTOFF;
   const ageRows = tableFromMap(metricMap(scoped, rangeEnd, r=>ageBucket(r, useYearlyAge)), useYearlyAge ? AGE_YEAR_ORDER : AGE_ORDER);
-  const ageLevelMap = {};
-  for(const age of AGE_LEVEL_YEARS) ageLevelMap[age] = {1:emptyMetric(),2:emptyMetric(),3:emptyMetric(),4:emptyMetric()};
-  for(const row of allInWindow){
-    const year = row.ageYear;
-    if(!ageLevelMap[year] || !ageLevelMap[year][row.level]) continue;
-    add(ageLevelMap[year][row.level], isCompleted(row, rangeEnd, state.wrapupComplete));
-  }
   const coreRows = CLASSES.filter(row =>
     firstInWindow(row,rangeStart,rangeEnd)!==null &&
     inCountries(row,state.countries) &&
@@ -14479,25 +14464,6 @@ function render(){
         2
       ) : ""}
       <p class="tiny">核心年龄=Onboarding 单岁 5 / 6 / 7 / 8；旧口径只有年龄段时计入 6–8，3–5 无法拆出 5 岁，不计入。用户按独立 user 去重，一人上了多个 Level 会分别计入各 Level。课堂完课率与上方同一口径。不受上方「用户年龄」下拉影响，随国家、英文能力、设备档位和「排除 13+」重算。${esc(caption)}</p>
-    `);
-  }
-
-  if(allInWindow.length){
-    addSec("sec-age-level", "年龄 × 级别 × 完课率", `
-      <h2>年龄 × 级别 × 完课率</h2>
-      ${tableHTML(
-        ["年龄","L1","L2","L3","L4"],
-        AGE_LEVEL_YEARS.map(age=>[
-          age+" 岁",
-          rateHitCell(ageLevelMap[age][1]),
-          rateHitCell(ageLevelMap[age][2]),
-          rateHitCell(ageLevelMap[age][3]),
-          rateHitCell(ageLevelMap[age][4]),
-        ]),
-        1,
-        1
-      )}
-      <p class="tiny">行是 Onboarding 单岁 3–15，列是 L1–L4。单元格是该窗口该年龄该 Level 的课堂完课率 · 完课/开课。完课率大于 50% 标绿。只计入已拆到单岁的课堂；13+ 整档、16+ 和改版前的 3–5 / 6–8 / 9–12 不进这张表。切上方 Level Tab 不改这张矩阵。随 UTC 时间窗、人群国家、用户年龄、英文能力、设备档位和「排除 13+ 用户」重算。</p>
     `);
   }
 
