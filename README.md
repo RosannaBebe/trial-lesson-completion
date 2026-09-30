@@ -6,9 +6,13 @@ Dino English 体验课 L1–L4 完课率看板。可按 UTC 时间窗、人群�
 
 https://rosannabebe.github.io/trial-lesson-completion/
 
-数据覆盖 2026-08-01 00:00:00 至 2026-09-29 12:13:21 UTC。测试账号继续排除。完课只看 `trigger + type=trial + result=complete`。默认快捷窗口是近 7 个完整 UTC 日。L1–L4 的 Template 触达漏斗和版本对比都按 V1 / V2 分 Level Tab。版本对比保留三个完课率数字；L2–L4 下面是 V1 / V2 进入用户的年龄、英文能力、国家、设备系统占比，L1 不展示画像。年龄 × 英文能力在 9/14 后窗口先看单岁交叉，下面再看历史年龄段。
+数据覆盖 2026-08-01 00:00:00 至 2026-09-30 11:14:22 UTC。测试账号继续排除。完课只看 `trigger + type=trial + result=complete`。默认快捷窗口是近 7 个完整 UTC 日（现为 9/23–9/29）。L1–L4 的 Template 触达漏斗和版本对比都按 V1 / V2 分 Level Tab。版本对比保留三个完课率数字；L2–L4 下面是 V1 / V2 进入用户的年龄、英文能力、国家、设备系统占比，L1 不展示画像。年龄 × 英文能力在 9/14 后窗口先看单岁交叉，下面再看历史年龄段。
 
-上一版备份（数据至 2026-09-29 02:13:57 UTC，年龄 × 英文能力已拆单岁/历史段）：
+上一版备份（数据至 2026-09-29 12:13:21 UTC）：
+
+https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-29-1213.html
+
+更早一版（数据至 2026-09-29 02:13:57 UTC，年龄 × 英文能力已拆单岁/历史段）：
 
 https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-29-0213-age-ability.html
 
@@ -72,4 +76,4 @@ https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-23.html
 
 https://rosannabebe.github.io/trial-lesson-completion/archive/2026-09-22.html
 
-最近一次更新：2026-09-29 20:35 CST。
+最近一次更新：2026-09-30 20:15 CST。
