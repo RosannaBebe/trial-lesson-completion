@@ -13789,7 +13789,8 @@ function focusCountrySentence(item, levelNow){
   if(item.nowRate!==null && levelNow!==null && Math.abs(item.nowRate-levelNow)>=3){
     const gap = Math.abs(item.nowRate-levelNow).toFixed(1);
     if(item.nowRate<levelNow){
-      bits.push(`低于本级别 ${gap}pp`);
+      const drag = dragAgainst(item.nowRate, levelNow, item.nowShare);
+      bits.push(drag>=0.3 ? `低于本级别 ${gap}pp，把整体往下拉 ${drag.toFixed(1)}pp` : `低于本级别 ${gap}pp`);
     } else {
       bits.push(`高于本级别 ${gap}pp`);
     }
