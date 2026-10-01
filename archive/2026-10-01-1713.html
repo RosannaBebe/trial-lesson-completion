@@ -84,10 +84,6 @@ td.num,th.num{text-align:right;white-space:nowrap}
 .funnel-head .funnel-track{background:transparent}
 .sec-nav{position:sticky;top:0;z-index:25;background:#fff;padding:12px 0 10px;margin:20px 0 0;border-bottom:1px solid var(--line)}
 .sec-nav .pills{gap:6px}
-.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}
-.sec-head h2{margin:0}
-.expand-btn{border:1px solid #d8d8d8;background:#fff;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer}
-.expand-btn:hover{background:var(--fill)}
 .analysis-card{border:1px solid var(--line);padding:12px 14px;margin:10px 0 0}
 .analysis-card h3{margin:0 0 8px;font-size:14px}
 .analysis-card h3 .prev{font-weight:400}
@@ -13546,7 +13542,6 @@ const state = {
   profileCountry: "马来西亚",
   funnelLevel: "1",
   versionLevel: "1",
-  versionOpen: false,
   countryOpen: false,
   tierOpen: false,
   section: "sec-rate",
@@ -14281,11 +14276,9 @@ function render(){
   let lead = "";
   if(!windowValid) lead += `<div class="callout warn"><b>时间格式无效</b>　请使用 UTC 日期 YYYY-MM-DD 和时间 HH:MM:SS，且开始不晚于结束。下方暂时回退到 9/14 00:00:00 – 最新。</div>`;
   const nav = [];
-  const sectionOrder = [];
   const sections = {};
-  const addSec = (id, label, inner, hideNav)=>{
-    if(!hideNav) nav.push({id, label});
-    sectionOrder.push(id);
+  const addSec = (id, label, inner)=>{
+    nav.push({id, label});
     sections[id] = inner;
   };
 
@@ -14683,11 +14676,7 @@ function render(){
       const v2rows = focusBase.filter(row=>row.level===lv && versionLabel(row.version)==="V2");
       const vgap = (rate(vv2)!==null && rate(vv1)!==null) ? (rate(vv2)-rate(vv1)).toFixed(1) : "—";
       addSec("sec-version", "版本对比 · V1 vs V2", `
-        <div class="sec-head">
-          <h2>版本对比 · V1 vs V2</h2>
-          <button type="button" class="expand-btn" data-version-toggle>${state.versionOpen?"收起":"展开"}</button>
-        </div>
-        ${state.versionOpen ? `
+        <h2>版本对比 · V1 vs V2</h2>
         <div class="pills" style="margin-bottom:10px">
           ${LEVELS.map(l=>`<button class="pill ${lv===l.level?"active":""}" data-version-level="${l.level}">${l.label} ${l.name}</button>`).join("")}
         </div>
@@ -14718,26 +14707,6 @@ function render(){
         </div>
         <p class="tiny">画像来自 Onboarding 年龄 / 英文能力，以及开课课堂的国家和设备系统。纵轴是占该版本开课的比例。L1 不展示画像。切 Level Tab 只换这一段，不改漏斗、也不改上方完课率筛选。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。</p>
         `}
-        ` : `<p class="tiny">默认折叠。点右侧展开查看 V1 / V2 完课率和画像。</p>`}
-      `, true);
-    }
-
-    if(allInWindow.length){
-      addSec("sec-age-level", "年龄 × 级别 × 完课率", `
-        <h2>年龄 × 级别 × 完课率</h2>
-        ${tableHTML(
-          ["年龄","L1","L2","L3","L4"],
-          AGE_LEVEL_YEARS.map(age=>[
-            age+" 岁",
-            rateHitCell(ageLevelMap[age][1]),
-            rateHitCell(ageLevelMap[age][2]),
-            rateHitCell(ageLevelMap[age][3]),
-            rateHitCell(ageLevelMap[age][4]),
-          ]),
-          1,
-          1
-        )}
-        <p class="tiny">行是 Onboarding 单岁 3–12、14、15（不含 13 岁），列是 L1–L4。单元格是该窗口该年龄该 Level 的课堂完课率 · 完课/开课。完课率大于 50% 标绿。只计入已拆到单岁的课堂；13 岁、13+ 整档、16+ 和改版前的 3–5 / 6–8 / 9–12 不进这张表。切上方 Level Tab 不改这张矩阵。随 UTC 时间窗、人群国家、用户年龄、英文能力、设备档位和「排除 13+ 用户」重算。</p>
       `);
     }
 
@@ -14825,6 +14794,25 @@ function render(){
     `);
   }
 
+  if(allInWindow.length){
+    addSec("sec-age-level", "年龄 × 级别 × 完课率", `
+      <h2>年龄 × 级别 × 完课率</h2>
+      ${tableHTML(
+        ["年龄","L1","L2","L3","L4"],
+        AGE_LEVEL_YEARS.map(age=>[
+          age+" 岁",
+          rateHitCell(ageLevelMap[age][1]),
+          rateHitCell(ageLevelMap[age][2]),
+          rateHitCell(ageLevelMap[age][3]),
+          rateHitCell(ageLevelMap[age][4]),
+        ]),
+        1,
+        1
+      )}
+      <p class="tiny">行是 Onboarding 单岁 3–12、14、15（不含 13 岁），列是 L1–L4。单元格是该窗口该年龄该 Level 的课堂完课率 · 完课/开课。完课率大于 50% 标绿。只计入已拆到单岁的课堂；13 岁、13+ 整档、16+ 和改版前的 3–5 / 6–8 / 9–12 不进这张表。切上方 Level Tab 不改这张矩阵。随 UTC 时间窗、人群国家、用户年龄、英文能力、设备档位和「排除 13+ 用户」重算。</p>
+    `);
+  }
+
   if(ageRows.length){
     addSec("sec-age", "各年龄段整体完课率", `<h2>各年龄段整体完课率</h2><div class="legend"><span><i class="dot" style="background:var(--ok)"></i>核心年龄 5 / 6 / 7 / 8，以及旧口径 6–8</span><span><i class="dot" style="background:var(--accent)"></i>其他年龄</span></div>${barChart(ageRows.map(([a])=>a||"未知"), ageRows.map(([,m])=>rate(m)||0), true)}${tableHTML(["年龄","开课","完课","完课率"], ageRows.map(([a,m])=>[a||"年龄未知",String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">横轴：Onboarding 年龄${useYearlyAge?"（9/14 起按单岁 + 13+ 细拆）":"段"}；纵轴：课堂完课率（%）。绿色柱是核心年龄。${useYearlyAge?"此窗口起点在 9/14 及以后，按每年一档。仍看到 3–5 / 6–8 / 9–12 的，是改版前填的旧口径。":"窗口起点早于 9/14，仍按 3–5 / 6–8 / 9–12。"} ${esc(caption)}</p>`);
     if(abilityRows.length){
@@ -14850,7 +14838,7 @@ function render(){
   const navHtml = `<div class="sec-nav" id="sec-nav"><div class="pills">${nav.map(item=>
     `<button type="button" class="pill ${state.section===item.id?"active":""}" data-section="${item.id}">${esc(item.label)}</button>`
   ).join("")}</div></div>`;
-  const body = sectionOrder.map(id=>`<section class="section" id="${id}">${sections[id]}</section>`).join("");
+  const body = nav.map(item=>`<section class="section" id="${item.id}">${sections[item.id]}</section>`).join("");
   document.getElementById("app").innerHTML = lead + navHtml + body;
   bindSectionNav();
 }
@@ -14864,7 +14852,7 @@ function markSection(id){
 }
 
 function bindSectionNav(){
-  const items = [...document.querySelectorAll("#app .section[id]")].filter(el=>el.id!=="sec-version");
+  const items = [...document.querySelectorAll("#app .section[id]")];
   if(!items.length) return;
   const io = new IntersectionObserver((entries)=>{
     const vis = entries
@@ -14892,14 +14880,6 @@ document.getElementById("app").addEventListener("click", e=>{
     state.funnelLevel = funnelBtn.dataset.funnelLevel;
     render();
     const el = document.getElementById("sec-funnel");
-    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-    return;
-  }
-  const versionToggle = e.target.closest("[data-version-toggle]");
-  if(versionToggle){
-    state.versionOpen = !state.versionOpen;
-    render();
-    const el = document.getElementById("sec-version");
     if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
     return;
   }
