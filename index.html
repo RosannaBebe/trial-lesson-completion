@@ -15661,8 +15661,8 @@ function render(){
   const l1HasV1 = funnelLevel==="1" && funnelVersions.includes("1");
   const visibleFunnelVersions = funnelLevel==="1"
     ? [
-        ...funnelVersions.filter(ver=>ver==="2"),
         ...(state.funnelShowL1V1 ? funnelVersions.filter(ver=>ver==="1") : []),
+        ...funnelVersions.filter(ver=>ver==="2"),
       ]
     : funnelVersions;
   addSec("sec-funnel", "Template触达漏斗", `
