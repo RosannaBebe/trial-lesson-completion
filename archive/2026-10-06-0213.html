@@ -14231,7 +14231,7 @@ function detail(metric){ return metric.started ? `${rateText(metric)} · ${count
 function rateHitCell(metric){
   const text = detail(metric);
   const v = rate(metric);
-  if(v!==null && v>=50) return `<span class="rate-hit">${esc(text)}</span>`;
+  if(v!==null && v>50) return `<span class="rate-hit">${esc(text)}</span>`;
   return esc(text);
 }
 function focusDetail(curr, prev){
@@ -15737,7 +15737,7 @@ function render(){
           1,
           1
         )}
-        <p class="tiny">行是 Onboarding 单岁 3–12、14、15（不含 13 岁），列是 L1–L4。单元格是该窗口该年龄该 Level 的课堂完课率 · 完课/开课。完课率大于等于 50% 标绿。只计入已拆到单岁的课堂；13 岁、13+ 整档、16+ 和改版前的 3–5 / 6–8 / 9–12 不进这张表。切上方 Level Tab 不改这张矩阵。随 UTC 时间窗、人群国家、用户年龄、英文能力、设备档位和「排除 13+ 用户」重算。</p>
+        <p class="tiny">行是 Onboarding 单岁 3–12、14、15（不含 13 岁），列是 L1–L4。单元格是该窗口该年龄该 Level 的课堂完课率 · 完课/开课。完课率大于 50% 标绿。只计入已拆到单岁的课堂；13 岁、13+ 整档、16+ 和改版前的 3–5 / 6–8 / 9–12 不进这张表。切上方 Level Tab 不改这张矩阵。随 UTC 时间窗、人群国家、用户年龄、英文能力、设备档位和「排除 13+ 用户」重算。</p>
       `);
     }
 
