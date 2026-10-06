@@ -14546,7 +14546,6 @@ const state = {
   levelTab: "all",
   profileCountry: "马来西亚",
   funnelLevel: "1",
-  funnelShowL1V1: false,
   versionLevel: "1",
   versionOpen: false,
   countryOpen: false,
@@ -15655,25 +15654,15 @@ function render(){
   const funnelMeta = LEVELS.find(l=>String(l.level)===funnelLevel);
   const funnelLevelRows = allInWindow.filter(row=>String(row.level)===funnelLevel);
   const funnelVersions = ["1","2"].filter(ver=>funnelLevelRows.some(row=>funnelVersion(row.version, funnelLevel)===ver));
-  const l1HasV1 = funnelLevel==="1" && funnelVersions.includes("1");
-  const visibleFunnelVersions = funnelLevel==="1"
-    ? [
-        ...funnelVersions.filter(ver=>ver==="2"),
-        ...(state.funnelShowL1V1 ? funnelVersions.filter(ver=>ver==="1") : []),
-      ]
-    : funnelVersions;
   addSec("sec-funnel", "Template触达漏斗", `
     <h2>Template触达漏斗</h2>
-    <p class="tiny">触达=该 Template 至少第 n 次 <code>class_stage_start</code>。右侧平均耗时=完成了该步并进入下一步的课堂，该步停留时长的平均值，单位 min；单步超过 20 分钟的重进间隔不计入。最后一行「完课」不展示平均耗时。L2–L4 分 V1 / V2 并列。L1 的 V1 已下架，默认只展示 V2，点右侧「展示V1」可对照下架前漏斗。每列分母是该版本开课，最后一步完课对应该版本完课率。窗口里还没有该版本开课的列会收起。完课仍看 trial complete。漏斗 Level Tab 只切这条漏斗，不改上方完课率筛选。${esc(caption)}</p>
-    <div class="sec-head" style="margin-bottom:10px">
-      <div class="pills">
-        ${LEVELS.map(l=>`<button class="pill ${funnelLevel===String(l.level)?"active":""}" data-funnel-level="${l.level}">${l.label} ${l.name}</button>`).join("")}
-      </div>
-      ${l1HasV1 ? `<button type="button" class="expand-btn" data-funnel-l1-v1>${state.funnelShowL1V1?"收起V1":"展示V1"}</button>` : ""}
+    <p class="tiny">触达=该 Template 至少第 n 次 <code>class_stage_start</code>。右侧平均耗时=完成了该步并进入下一步的课堂，该步停留时长的平均值，单位 min；单步超过 20 分钟的重进间隔不计入。最后一行「完课」不展示平均耗时。L1–L4 分 V1 / V2 并列，每列分母是该版本开课，最后一步完课对应该版本完课率。窗口里还没有该版本开课的列会收起。完课仍看 trial complete。漏斗 Level Tab 只切这条漏斗，不改上方完课率筛选。${esc(caption)}</p>
+    <div class="pills" style="margin-bottom:10px">
+      ${LEVELS.map(l=>`<button class="pill ${funnelLevel===String(l.level)?"active":""}" data-funnel-level="${l.level}">${l.label} ${l.name}</button>`).join("")}
     </div>
-    ${visibleFunnelVersions.length ? `
-      <div class="grid ${visibleFunnelVersions.length>1?"funnel-pair":"g1"}">
-        ${visibleFunnelVersions.map(ver=>{
+    ${funnelVersions.length ? `
+      <div class="grid ${funnelVersions.length>1?"funnel-pair":"g1"}">
+        ${funnelVersions.map(ver=>{
           const rows = funnelLevelRows.filter(row=>funnelVersion(row.version, funnelLevel)===ver);
           const steps = versionFunnelSteps(Number(funnelLevel), ver, rows, rangeEnd);
           const title = VERSION_FUNNEL_LABEL[ver] || ("V"+ver);
@@ -15900,16 +15889,7 @@ document.getElementById("app").addEventListener("click", e=>{
   }
   const funnelBtn = e.target.closest("[data-funnel-level]");
   if(funnelBtn){
-    if(funnelBtn.dataset.funnelLevel !== state.funnelLevel) state.funnelShowL1V1 = false;
     state.funnelLevel = funnelBtn.dataset.funnelLevel;
-    render();
-    const el = document.getElementById("sec-funnel");
-    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-    return;
-  }
-  const funnelL1V1 = e.target.closest("[data-funnel-l1-v1]");
-  if(funnelL1V1){
-    state.funnelShowL1V1 = !state.funnelShowL1V1;
     render();
     const el = document.getElementById("sec-funnel");
     if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
