@@ -14416,6 +14416,7 @@ const COUNTRY_ALIAS = {
   KR:"韩国", "South Korea":"韩国", "Republic of Korea":"韩国",
   VN:"越南", Vietnam:"越南",
   SA:"沙特阿拉伯", "Saudi Arabia":"沙特阿拉伯",
+  JP:"日本", Japan:"日本",
   TH:"泰国", Thailand:"泰国",
   ID:"印度尼西亚", Indonesia:"印度尼西亚",
   AE:"阿联酋", "United Arab Emirates":"阿联酋",
@@ -14436,6 +14437,7 @@ const DAILY_SEGMENTS = [
   {value:"vietnam",label:"越南"},
   {value:"korea",label:"韩国"},
   {value:"saudi",label:"沙特"},
+  {value:"japan",label:"日本"},
   {value:"thailand",label:"泰国"},
   {value:"indonesia",label:"印尼"},
 ];
@@ -14455,6 +14457,7 @@ const SEGMENTS = [
   {value:"vietnam",label:"越南",country:"越南"},
   {value:"korea",label:"韩国",country:"韩国"},
   {value:"saudi",label:"沙特",country:"沙特阿拉伯"},
+  {value:"japan",label:"日本",country:"日本"},
   {value:"thailand",label:"泰国",country:"泰国"},
   {value:"indonesia",label:"印尼",country:"印度尼西亚"},
 ];
@@ -14982,7 +14985,7 @@ function osLabel(code){
   return "其他";
 }
 function countryShort(name){
-  return ({马来西亚:"马来",越南:"越南",韩国:"韩国",沙特阿拉伯:"沙特",泰国:"泰国",印度尼西亚:"印尼"}[name]) || name || "未知";
+  return ({马来西亚:"马来",越南:"越南",韩国:"韩国",沙特阿拉伯:"沙特",日本:"日本",泰国:"泰国",印度尼西亚:"印尼"}[name]) || name || "未知";
 }
 function countBy(rows, keyFn){
   const map = new Map();
