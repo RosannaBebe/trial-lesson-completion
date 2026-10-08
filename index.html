@@ -15130,6 +15130,7 @@ const state = {
   profileCountry: "马来西亚",
   funnelLevel: "1",
   funnelShowL1V1: false,
+  hwFunnelTab: "all",
   versionLevel: "1",
   versionOpen: false,
   countryOpen: false,
@@ -15717,22 +15718,42 @@ function renderHomeworkView(ctx){
     addHwLevel(focusByCountry[row.country], row.level, row, rangeEnd);
   }
 
-  const funnel = [
-    ["开课", totals.started],
-    ["完课", totals.completed],
-    ["可练完课（9/21及之后完课）", totals.eligible],
-    ["点击课后练习", totals.hwClick],
-    ["开始课后练习（任一）", totals.hwStart],
-    ["进入 word & sentences", totals.wsOpen],
-    ["进入 speaking", totals.spOpen],
-    ["进入 listening", totals.liOpen],
-    ["完成任意一个课后练习", totals.hwDone],
-    ["完成词句 Words & Sentence", totals.ws],
-    ["完成口语 Speaking", totals.sp],
-    ["完成听力 Listening", totals.li],
-    ["完成3个课后练习", totals.all3],
+  if(!["all","ws","sp","li"].includes(state.hwFunnelTab)) state.hwFunnelTab = "all";
+  const hwFunnelTabs = [
+    ["all","整体"],
+    ["ws","word & sentences"],
+    ["sp","speaking"],
+    ["li","listening"],
   ];
-  const funnelMax = totals.started || 1;
+  let funnel;
+  let funnelBase;
+  let funnelNote;
+  if(state.hwFunnelTab==="all"){
+    funnel = [
+      ["开课", totals.started],
+      ["完课", totals.completed],
+      ["可练完课（9/21及之后完课）", totals.eligible],
+      ["点击课后练习", totals.hwClick],
+      ["开始课后练习（任一）", totals.hwStart],
+      ["完成任一课后练习", totals.hwDone],
+    ];
+    funnelBase = totals.started;
+    funnelNote = "柱宽按开课量。右侧「上步」是相对前一步的转化。完成任一课后练习=任意一个练习 end result=complete，三类完成不再并排占步。点击练习不是必经埋点。";
+  } else {
+    const spec = {
+      ws: ["word & sentences", totals.wsOpen, totals.ws],
+      sp: ["speaking", totals.spOpen, totals.sp],
+      li: ["listening", totals.liOpen, totals.li],
+    }[state.hwFunnelTab];
+    const [name, opened, done] = spec;
+    funnel = [
+      ["开始了 "+name, opened],
+      ["完成了 "+name, done],
+    ];
+    funnelBase = opened;
+    funnelNote = "只看该练：开始了 → 完成了。开始了=开启该练任务（点过该练卡片，或该练已开始/已完成）。完成了=该练完成。柱宽按开始了该练的任务数。";
+  }
+  const funnelMax = funnelBase || 1;
   const funnelHtml = `<div class="funnel">
     <div class="funnel-row funnel-head">
       <div class="funnel-label"></div>
@@ -15742,12 +15763,12 @@ function renderHomeworkView(ctx){
     </div>` + funnel.map((item, i)=>{
       const [label, n] = item;
       const prev = i===0 ? n : funnel[i-1][1];
-      const rateVsOpen = hwRateText(n, totals.started);
+      const rateVsOpen = hwRateText(n, funnelBase);
       const conv = hwRateText(n, prev);
       return `<div class="funnel-row">
         <div class="funnel-label">${esc(label)}</div>
         <div class="funnel-track"><div class="funnel-fill" style="width:${(n/funnelMax)*100}%"></div></div>
-        <div class="funnel-n">${rateVsOpen} · ${n}/${totals.started}${i?` · 上步${conv}`:""}</div>
+        <div class="funnel-n">${rateVsOpen} · ${n}/${funnelBase}${i?` · 上步${conv}`:""}</div>
         <div class="funnel-t"></div>
       </div>`;
     }).join("") + `</div>`;
@@ -15810,8 +15831,13 @@ function renderHomeworkView(ctx){
 
   addSec("sec-hw-funnel", "课后练习漏斗", `
     <h2>课后练习漏斗</h2>
+    <div class="pills" style="margin:0 0 12px">
+      ${hwFunnelTabs.map(([value,label])=>
+        `<button type="button" class="pill ${state.hwFunnelTab===value?"active":""}" data-hw-funnel="${value}">${esc(label)}</button>`
+      ).join("")}
+    </div>
     ${funnelHtml}
-    <p class="tiny">柱宽按开课量。右侧「上步」是相对前一步的转化。词句 / 口语 / 听力三列不是漏斗上下游，是并列完成。点击练习不是必经埋点。${esc(caption)}</p>
+    <p class="tiny">${funnelNote} ${esc(caption)}</p>
   `);
 
   if(bucketKeys.length){
@@ -16691,6 +16717,14 @@ document.getElementById("app").addEventListener("click", e=>{
   if(sec){
     markSection(sec.dataset.section);
     const el = document.getElementById(sec.dataset.section);
+    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+    return;
+  }
+  const hwFunnelBtn = e.target.closest("[data-hw-funnel]");
+  if(hwFunnelBtn){
+    state.hwFunnelTab = hwFunnelBtn.dataset.hwFunnel;
+    render();
+    const el = document.getElementById("sec-hw-funnel");
     if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
     return;
   }
