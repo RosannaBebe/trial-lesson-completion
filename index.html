@@ -15555,7 +15555,7 @@ function renderHomeworkView(ctx){
       <div class="stat info"><div class="k">${selectedLevel?`L${selectedLevel}`:"合计"}课程完课率 · ${totals.completed}/${totals.started}</div><div class="v">${hwRateText(totals.completed, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.completed},{started:prevTotals.started,completed:prevTotals.completed})}</div>
       <div class="stat"><div class="k">进入了任意一个课后练习的占比 · ${totals.hwStart}/${totals.eligible}</div><div class="v">${hwRateText(totals.hwStart, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.hwStart},{started:prevTotals.eligible,completed:prevTotals.hwStart})}</div>
       <div class="stat"><div class="k">word & sentences 完成率 · ${totals.ws}/${totals.eligible}</div><div class="v">${hwRateText(totals.ws, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.ws},{started:prevTotals.eligible,completed:prevTotals.ws})}</div>
-      <div class="stat"><div class="k">口语完成 / 可练 · ${totals.sp}/${totals.eligible}</div><div class="v">${hwRateText(totals.sp, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.sp},{started:prevTotals.eligible,completed:prevTotals.sp})}</div>
+      <div class="stat"><div class="k">speaking 完成率 · ${totals.sp}/${totals.eligible}</div><div class="v">${hwRateText(totals.sp, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.sp},{started:prevTotals.eligible,completed:prevTotals.sp})}</div>
       <div class="stat"><div class="k">听力完成 / 可练 · ${totals.li}/${totals.eligible}</div><div class="v">${hwRateText(totals.li, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.li},{started:prevTotals.eligible,completed:prevTotals.li})}</div>
     </div>
     <div class="grid g1" style="margin-top:12px">
@@ -15567,7 +15567,7 @@ function renderHomeworkView(ctx){
   addSec("sec-hw-level", "分 Level", `
     <h2>分 Level</h2>
     ${tableHTML(
-      ["Level","课程","开课","完课","课程完课率","可练完课","进入练习","word & sentences 完成率","口语完成/可练","听力完成/可练","完课+3练/开课"],
+      ["Level","课程","开课","完课","课程完课率","可练完课","进入练习","word & sentences 完成率","speaking 完成率","听力完成/可练","完课+3练/开课"],
       LEVELS.filter(l=>!selectedLevel || l.level===selectedLevel).map(l=>{
         const m = byLevel[l.level];
         return [
@@ -15593,7 +15593,7 @@ function renderHomeworkView(ctx){
     addSec("sec-hw-daily", "分日完成情况", `
       <h2>分日完成情况</h2>
       ${tableHTML(
-        [useHourly?"小时 UTC":"日期 UTC","开课","完课","可练完课","进入练习","word & sentences 完成率","口语完成/可练","听力完成/可练","完课+3练/开课"],
+        [useHourly?"小时 UTC":"日期 UTC","开课","完课","可练完课","进入练习","word & sentences 完成率","speaking 完成率","听力完成/可练","完课+3练/开课"],
         bucketKeys.map(key=>{
           const m = byBucket.get(key);
           return [
@@ -15612,7 +15612,7 @@ function renderHomeworkView(ctx){
   addSec("sec-hw-focus", "马来 / 越南 / 韩国 / 沙特", `
     <h2>马来 / 越南 / 韩国 / 沙特</h2>
     ${tableHTML(
-      ["国家","开课","完课","课程完课率","可练完课","进入练习","word & sentences 完成率","口语完成/可练","听力完成/可练","完课+3练/开课"],
+      ["国家","开课","完课","课程完课率","可练完课","进入练习","word & sentences 完成率","speaking 完成率","听力完成/可练","完课+3练/开课"],
       FOCUS_COUNTRIES.map(c=>{
         const m = selectedLevel ? focusByCountry[c.name][selectedLevel] : focusByCountry[c.name].all;
         return [
