@@ -15538,7 +15538,7 @@ function renderHomeworkView(ctx){
 
   let lead = "";
   if(!windowValid) lead += `<div class="callout warn"><b>时间格式无效</b>　请使用 UTC 日期 YYYY-MM-DD 和时间 HH:MM:SS，且开始不晚于结束。下方暂时回退到 9/14 00:00:00 – 最新。</div>`;
-  lead += `<div class="callout info"><b>口径</b>　课程完课率与上一页相同，不把练习算进完课。<b>可练完课</b>=完课时间 ≥ 2026-09-21 00:00 UTC 且 ≤ 窗口结束（1.8.0 才有课后练习）。<b>完课后进入了课后练习的占比</b>=这些可练完课里，有任意一次 <code>afterclass_practice_start</code> 的比例，不是三练都进了。一课通常有词句 / 口语 / 听力三练：点击 <code>content_id</code> 为 <code>words_sentences</code> / <code>speaking</code> / <code>listening</code>；开始和结束没有类型，按进入前最后一次类型点击归因。某练完成=该类型有 <code>end result=complete</code>，或事后点到该卡片 <code>status=completed</code>，时间都要落在窗口结束前。<b>完课且完成3个练习 / 开课</b>=课程完课，并且三练都完成，占窗口开课。</div>`;
+  lead += `<div class="callout info"><b>口径</b>　课程完课率与上一页相同，不把练习算进完课。<b>可练完课</b>=完课时间 ≥ 2026-09-21 00:00 UTC 且 ≤ 窗口结束（1.8.0 才有课后练习）。<b>进入了任意一个课后练习的占比</b>=这些可练完课里，有任意一次 <code>afterclass_practice_start</code> 的比例，不是三练都进了。一课通常有词句 / 口语 / 听力三练：点击 <code>content_id</code> 为 <code>words_sentences</code> / <code>speaking</code> / <code>listening</code>；开始和结束没有类型，按进入前最后一次类型点击归因。某练完成=该类型有 <code>end result=complete</code>，或事后点到该卡片 <code>status=completed</code>，时间都要落在窗口结束前。<b>完课且完成3个练习 / 开课</b>=课程完课，并且三练都完成，占窗口开课。</div>`;
 
   const nav = [];
   const sectionOrder = [];
@@ -15553,7 +15553,7 @@ function renderHomeworkView(ctx){
     <h2>课程与课后练习（${esc(segmentLabel)}）</h2>
     <div class="grid g5">
       <div class="stat info"><div class="k">${selectedLevel?`L${selectedLevel}`:"合计"}课程完课率 · ${totals.completed}/${totals.started}</div><div class="v">${hwRateText(totals.completed, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.completed},{started:prevTotals.started,completed:prevTotals.completed})}</div>
-      <div class="stat"><div class="k">完课后进入了课后练习的占比 · ${totals.hwStart}/${totals.eligible}</div><div class="v">${hwRateText(totals.hwStart, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.hwStart},{started:prevTotals.eligible,completed:prevTotals.hwStart})}</div>
+      <div class="stat"><div class="k">进入了任意一个课后练习的占比 · ${totals.hwStart}/${totals.eligible}</div><div class="v">${hwRateText(totals.hwStart, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.hwStart},{started:prevTotals.eligible,completed:prevTotals.hwStart})}</div>
       <div class="stat"><div class="k">词句完成 / 可练 · ${totals.ws}/${totals.eligible}</div><div class="v">${hwRateText(totals.ws, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.ws},{started:prevTotals.eligible,completed:prevTotals.ws})}</div>
       <div class="stat"><div class="k">口语完成 / 可练 · ${totals.sp}/${totals.eligible}</div><div class="v">${hwRateText(totals.sp, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.sp},{started:prevTotals.eligible,completed:prevTotals.sp})}</div>
       <div class="stat"><div class="k">听力完成 / 可练 · ${totals.li}/${totals.eligible}</div><div class="v">${hwRateText(totals.li, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.li},{started:prevTotals.eligible,completed:prevTotals.li})}</div>
