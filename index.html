@@ -15755,7 +15755,7 @@ function renderHomeworkView(ctx){
       <div class="stat"><div class="k">speaking 完成率 · ${totals.sp}/${totals.eligible}</div><div class="v">${hwRateText(totals.sp, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.sp},{started:prevTotals.eligible,completed:prevTotals.sp})}</div>
       <div class="stat"><div class="k">listening 完成率 · ${totals.li}/${totals.eligible}</div><div class="v">${hwRateText(totals.li, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.li},{started:prevTotals.eligible,completed:prevTotals.li})}</div>
     </div>
-    <div class="grid g3" style="margin-top:12px">
+    <div class="grid g3" style="margin-top:12px;grid-template-columns:1fr 1fr 1fr">
       <div class="stat"><div class="k">课后练习完成率 · ${totals.hwDone}/${totals.hwStart}</div><div class="v">${hwRateText(totals.hwDone, totals.hwStart)}</div>${cmpHTML({started:totals.hwStart,completed:totals.hwDone},{started:prevTotals.hwStart,completed:prevTotals.hwDone})}</div>
       <div class="stat warn"><div class="k">完成AI课+3个课后练习 / 开课 · ${totals.all3}/${totals.started}</div><div class="v">${hwRateText(totals.all3, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.all3},{started:prevTotals.started,completed:prevTotals.all3})}</div>
       <div class="stat warn"><div class="k">完成AI课+3个课后练习 / 完课 · ${totals.all3}/${totals.completed}</div><div class="v">${hwRateText(totals.all3, totals.completed)}</div>${cmpHTML({started:totals.completed,completed:totals.all3},{started:prevTotals.completed,completed:prevTotals.all3})}</div>
@@ -15766,13 +15766,13 @@ function renderHomeworkView(ctx){
   addSec("sec-hw-level", "分 Level", `
     <h2>分 Level</h2>
     ${tableHTML(
-      ["Level","课程","开课","完课","课程完课率","可练完课","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
+      ["Level","课程","开课","完课","课程完课率","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
       LEVELS.filter(l=>!selectedLevel || l.level===selectedLevel).map(l=>{
         const m = byLevel[l.level];
         return [
           l.label, l.name,
           String(m.started), String(m.completed), hwRateText(m.completed, m.started),
-          String(m.eligible), String(m.hwStart), hwRateText(m.hwDone, m.hwStart),
+          String(m.hwStart), hwRateText(m.hwDone, m.hwStart),
           hwRateText(m.ws, m.eligible), hwRateText(m.sp, m.eligible), hwRateText(m.li, m.eligible),
           hwRateText(m.all3, m.started), hwRateText(m.all3, m.completed),
         ];
@@ -15792,12 +15792,12 @@ function renderHomeworkView(ctx){
     addSec("sec-hw-daily", "分日完成情况", `
       <h2>分日完成情况</h2>
       ${tableHTML(
-        [useHourly?"小时 UTC":"日期 UTC","开课","完课","可练完课","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
+        [useHourly?"小时 UTC":"日期 UTC","开课","完课","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
         bucketKeys.map(key=>{
           const m = byBucket.get(key);
           return [
             key,
-            String(m.started), String(m.completed), String(m.eligible), String(m.hwStart),
+            String(m.started), String(m.completed), String(m.hwStart),
             hwRateText(m.hwDone, m.hwStart),
             hwRateText(m.ws, m.eligible), hwRateText(m.sp, m.eligible), hwRateText(m.li, m.eligible),
             hwRateText(m.all3, m.started), hwRateText(m.all3, m.completed),
@@ -15812,13 +15812,13 @@ function renderHomeworkView(ctx){
   addSec("sec-hw-focus", "马来 / 越南 / 韩国 / 沙特", `
     <h2>马来 / 越南 / 韩国 / 沙特</h2>
     ${tableHTML(
-      ["国家","开课","完课","课程完课率","可练完课","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
+      ["国家","开课","完课","课程完课率","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
       FOCUS_COUNTRIES.map(c=>{
         const m = selectedLevel ? focusByCountry[c.name][selectedLevel] : focusByCountry[c.name].all;
         return [
           c.short,
           String(m.started), String(m.completed), hwRateText(m.completed, m.started),
-          String(m.eligible), String(m.hwStart), hwRateText(m.hwDone, m.hwStart),
+          String(m.hwStart), hwRateText(m.hwDone, m.hwStart),
           hwRateText(m.ws, m.eligible), hwRateText(m.sp, m.eligible), hwRateText(m.li, m.eligible),
           hwRateText(m.all3, m.started), hwRateText(m.all3, m.completed),
         ];
