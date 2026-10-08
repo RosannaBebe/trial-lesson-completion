@@ -15511,6 +15511,7 @@ function renderHomeworkView(ctx){
     ["可练完课（9/21及之后完课）", totals.eligible],
     ["点击课后练习", totals.hwClick],
     ["开始课后练习（任一）", totals.hwStart],
+    ["完成任意一个课后练习", totals.hwDone],
     ["完成词句 Words & Sentence", totals.ws],
     ["完成口语 Speaking", totals.sp],
     ["完成听力 Listening", totals.li],
@@ -15538,7 +15539,7 @@ function renderHomeworkView(ctx){
 
   let lead = "";
   if(!windowValid) lead += `<div class="callout warn"><b>时间格式无效</b>　请使用 UTC 日期 YYYY-MM-DD 和时间 HH:MM:SS，且开始不晚于结束。下方暂时回退到 9/14 00:00:00 – 最新。</div>`;
-  lead += `<div class="callout info"><b>口径</b>　课程完课率与上一页相同，不把练习算进完课。<b>可练完课</b>=完课时间 ≥ 2026-09-21 00:00 UTC 且 ≤ 窗口结束（1.8.0 才有课后练习）。<b>进入了任意一个课后练习的占比</b>=这些可练完课里，有任意一次 <code>afterclass_practice_start</code> 的比例，不是三练都进了。一课通常有词句 / 口语 / 听力三练：点击 <code>content_id</code> 为 <code>words_sentences</code> / <code>speaking</code> / <code>listening</code>；开始和结束没有类型，按进入前最后一次类型点击归因。某练完成=该类型有 <code>end result=complete</code>，或事后点到该卡片 <code>status=completed</code>，时间都要落在窗口结束前。<b>完课且完成3个练习 / 开课</b>=课程完课，并且三练都完成，占窗口开课。</div>`;
+  lead += `<div class="callout info"><b>口径</b>　课程完课率与上一页相同，不把练习算进完课。<b>可练完课</b>=完课时间 ≥ 2026-09-21 00:00 UTC 且 ≤ 窗口结束（1.8.0 才有课后练习）。<b>进入了任意一个课后练习的占比</b>=这些可练完课里，有任意一次 <code>afterclass_practice_start</code> 的比例，一节课进了词句/口语/听力里任何一个都只计 1。<b>课后练习完成率</b>=这些已经进入练习的课堂里，有 <code>afterclass_practice_end</code> 且 <code>result=complete</code> 的比例，完成任意一个练习即可，不是三练都完成。一课通常有词句 / 口语 / 听力三练：点击 <code>content_id</code> 为 <code>words_sentences</code> / <code>speaking</code> / <code>listening</code>；开始和结束没有类型，按进入前最后一次类型点击归因。某练完成=该类型有 <code>end result=complete</code>，或事后点到该卡片 <code>status=completed</code>，时间都要落在窗口结束前。<b>完课且完成3个练习 / 开课</b>=课程完课，并且三练都完成，占窗口开课。</div>`;
 
   const nav = [];
   const sectionOrder = [];
@@ -15558,7 +15559,8 @@ function renderHomeworkView(ctx){
       <div class="stat"><div class="k">speaking 完成率 · ${totals.sp}/${totals.eligible}</div><div class="v">${hwRateText(totals.sp, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.sp},{started:prevTotals.eligible,completed:prevTotals.sp})}</div>
       <div class="stat"><div class="k">listening 完成率 · ${totals.li}/${totals.eligible}</div><div class="v">${hwRateText(totals.li, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.li},{started:prevTotals.eligible,completed:prevTotals.li})}</div>
     </div>
-    <div class="grid g1" style="margin-top:12px">
+    <div class="grid g2" style="margin-top:12px">
+      <div class="stat"><div class="k">课后练习完成率 · ${totals.hwDone}/${totals.hwStart}</div><div class="v">${hwRateText(totals.hwDone, totals.hwStart)}</div>${cmpHTML({started:totals.hwStart,completed:totals.hwDone},{started:prevTotals.hwStart,completed:prevTotals.hwDone})}</div>
       <div class="stat warn"><div class="k">完课且完成3个课后练习 / 开课 · ${totals.all3}/${totals.started}</div><div class="v">${hwRateText(totals.all3, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.all3},{started:prevTotals.started,completed:prevTotals.all3})}</div>
     </div>
     <p class="tiny">${esc(caption)}</p>
@@ -15567,20 +15569,20 @@ function renderHomeworkView(ctx){
   addSec("sec-hw-level", "分 Level", `
     <h2>分 Level</h2>
     ${tableHTML(
-      ["Level","课程","开课","完课","课程完课率","可练完课","进入练习","word & sentences 完成率","speaking 完成率","listening 完成率","完课+3练/开课"],
+      ["Level","课程","开课","完课","课程完课率","可练完课","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完课+3练/开课"],
       LEVELS.filter(l=>!selectedLevel || l.level===selectedLevel).map(l=>{
         const m = byLevel[l.level];
         return [
           l.label, l.name,
           String(m.started), String(m.completed), hwRateText(m.completed, m.started),
-          String(m.eligible), String(m.hwStart),
+          String(m.eligible), String(m.hwStart), hwRateText(m.hwDone, m.hwStart),
           hwRateText(m.ws, m.eligible), hwRateText(m.sp, m.eligible), hwRateText(m.li, m.eligible),
           hwRateText(m.all3, m.started),
         ];
       }),
       2
     )}
-    <p class="tiny">进入练习、词句/口语/听力完成率的分母都是 9/21 及之后完课的课堂。完课+3练的分母是开课。${esc(caption)}</p>
+    <p class="tiny">进入练习、三类完成率的分母都是 9/21 及之后完课的课堂。课后练习完成率的分母是进入了任意一个练习的课堂。完课+3练的分母是开课。${esc(caption)}</p>
   `);
 
   addSec("sec-hw-funnel", "课后练习漏斗", `
@@ -15593,12 +15595,13 @@ function renderHomeworkView(ctx){
     addSec("sec-hw-daily", "分日完成情况", `
       <h2>分日完成情况</h2>
       ${tableHTML(
-        [useHourly?"小时 UTC":"日期 UTC","开课","完课","可练完课","进入练习","word & sentences 完成率","speaking 完成率","listening 完成率","完课+3练/开课"],
+        [useHourly?"小时 UTC":"日期 UTC","开课","完课","可练完课","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完课+3练/开课"],
         bucketKeys.map(key=>{
           const m = byBucket.get(key);
           return [
             key,
             String(m.started), String(m.completed), String(m.eligible), String(m.hwStart),
+            hwRateText(m.hwDone, m.hwStart),
             hwRateText(m.ws, m.eligible), hwRateText(m.sp, m.eligible), hwRateText(m.li, m.eligible),
             hwRateText(m.all3, m.started),
           ];
@@ -15612,13 +15615,13 @@ function renderHomeworkView(ctx){
   addSec("sec-hw-focus", "马来 / 越南 / 韩国 / 沙特", `
     <h2>马来 / 越南 / 韩国 / 沙特</h2>
     ${tableHTML(
-      ["国家","开课","完课","课程完课率","可练完课","进入练习","word & sentences 完成率","speaking 完成率","listening 完成率","完课+3练/开课"],
+      ["国家","开课","完课","课程完课率","可练完课","进入练习","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完课+3练/开课"],
       FOCUS_COUNTRIES.map(c=>{
         const m = selectedLevel ? focusByCountry[c.name][selectedLevel] : focusByCountry[c.name].all;
         return [
           c.short,
           String(m.started), String(m.completed), hwRateText(m.completed, m.started),
-          String(m.eligible), String(m.hwStart),
+          String(m.eligible), String(m.hwStart), hwRateText(m.hwDone, m.hwStart),
           hwRateText(m.ws, m.eligible), hwRateText(m.sp, m.eligible), hwRateText(m.li, m.eligible),
           hwRateText(m.all3, m.started),
         ];
