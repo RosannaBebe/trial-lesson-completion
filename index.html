@@ -99,17 +99,28 @@ td.num,th.num{text-align:right;white-space:nowrap}
 .toggle{display:flex;gap:8px;align-items:center;min-height:32px;font-size:13px}
 .toggle input{width:16px;height:16px}
 .how{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
-.board-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.board-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.board-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0;padding:0;border:0;flex:1}
 .board-tabs .pill{font-size:13px;padding:6px 14px}
+.lang-switch{flex-shrink:0;display:inline-flex;border:1px solid #d8d8d8;border-radius:999px;overflow:hidden;background:#fff;padding:0;cursor:pointer}
+.lang-switch .lang-opt{padding:6px 12px;font-size:13px;color:#666;line-height:1.2}
+.lang-switch .lang-opt.active{background:var(--info);color:#1d3f99;font-weight:600}
+html[lang="en"] .funnel-label{width:280px}
 code{font-size:12px;background:#f5f5f5;padding:1px 4px}
 @media (max-width:900px){.g2,.g3,.g4,.g5,.funnel-pair{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="board-tabs pills" id="board-tabs">
-  <button type="button" class="pill active" data-board="course">体验课完课率</button>
-  <button type="button" class="pill" data-board="homework">体验课课后练习完成情况</button>
-  <button type="button" class="pill" data-board="formal_hw">正式课课后练习完成情况</button>
+<div class="board-top">
+  <div class="board-tabs pills" id="board-tabs">
+    <button type="button" class="pill active" data-board="course">体验课完课率</button>
+    <button type="button" class="pill" data-board="homework">体验课课后练习完成情况</button>
+    <button type="button" class="pill" data-board="formal_hw">正式课课后练习完成情况</button>
+  </div>
+  <button type="button" class="lang-switch" id="lang-switch" aria-label="Language">
+    <span class="lang-opt active" data-lang="zh">中文</span>
+    <span class="lang-opt" data-lang="en">EN</span>
+  </button>
 </div>
 <h1 id="board-title">体验课完课率看板</h1>
 <p class="muted" id="board-desc">L1–L4 完课率、马来/越南/韩国/沙特对照，以及 L1–L4 的 V1 / V2 版本对比合在同一页。窗口内任意一次 <code>class_stage_start</code> 都算开课，完课看 <code>trigger + type=trial + result=complete</code>，分母是独立 <code>class_id</code>。改 UTC 时间窗后，下面所有数字一起重算。</p>
@@ -117,53 +128,53 @@ code{font-size:12px;background:#f5f5f5;padding:1px 4px}
 
 <div class="filters">
   <div class="row" style="justify-content:space-between;margin-bottom:10px">
-    <h2 style="margin:0">筛选</h2>
-    <span class="tiny">日期和时间都按 UTC，不做本地换算</span>
+    <h2 id="filter-title" style="margin:0">筛选</h2>
+    <span class="tiny" id="filter-utc-note">日期和时间都按 UTC，不做本地换算</span>
   </div>
   <div class="pills" id="level-pills"></div>
   <div class="grid g5" style="margin-top:12px">
     <div>
-      <label class="k">快捷窗口</label>
+      <label class="k" id="lbl-preset">快捷窗口</label>
       <select id="preset"></select>
     </div>
     <div>
-      <label class="k">人群国家（可多选）</label>
+      <label class="k" id="lbl-country">人群国家（可多选）</label>
       <div class="msel" id="country-msel">
         <button type="button" class="msel-btn" id="country-msel-btn">全部国家</button>
         <div class="msel-panel" id="country-msel-panel"></div>
       </div>
     </div>
     <div>
-      <label class="k">设备档位（可多选）</label>
+      <label class="k" id="lbl-tier">设备档位（可多选）</label>
       <div class="msel" id="tier-msel">
         <button type="button" class="msel-btn" id="tier-msel-btn">全部档位</button>
         <div class="msel-panel" id="tier-msel-panel"></div>
       </div>
     </div>
     <div>
-      <label class="k">用户年龄</label>
+      <label class="k" id="lbl-age">用户年龄</label>
       <select id="age"></select>
     </div>
     <div>
-      <label class="k">英文能力</label>
+      <label class="k" id="lbl-ability">英文能力</label>
       <select id="ability"></select>
     </div>
   </div>
   <div class="row" style="margin-top:10px">
-    <label class="toggle"><input id="exclude13" type="checkbox"> 排除 13+ 用户</label>
+    <label class="toggle"><input id="exclude13" type="checkbox"> <span id="lbl-exclude13">排除 13+ 用户</span></label>
   </div>
   <div class="grid g4" style="margin-top:12px">
-    <div><label class="k">开始日期 UTC</label><input id="startDate" type="date"></div>
-    <div><label class="k">开始时间 UTC</label><input id="startTime" type="time" step="1"></div>
-    <div><label class="k">结束日期 UTC</label><input id="endDate" type="date"></div>
-    <div><label class="k">结束时间 UTC</label><input id="endTime" type="time" step="1"></div>
+    <div><label class="k" id="lbl-start-date">开始日期 UTC</label><input id="startDate" type="date"></div>
+    <div><label class="k" id="lbl-start-time">开始时间 UTC</label><input id="startTime" type="time" step="1"></div>
+    <div><label class="k" id="lbl-end-date">结束日期 UTC</label><input id="endDate" type="date"></div>
+    <div><label class="k" id="lbl-end-time">结束时间 UTC</label><input id="endTime" type="time" step="1"></div>
   </div>
   <div class="pills" id="preset-pills" style="margin-top:10px"></div>
   <p class="tiny" id="window-label"></p>
 </div>
 
 <div id="app"></div>
-<p class="how">底表：<code>Data/trial_lesson_completion_classes_enriched.csv</code>。课堂主表来自 <code>build_l1l4_trial_completion_board.py</code>；英文能力回填自 L1/L2/L3/L4 干净样本；版本回填自各课首次 <code>class_stage_start</code> template。wrap-up 时间回填自各课 <code>wrapup_summary_video_trail</code> 的首次 <code>class_stage_start</code>（各课 ID 不同，按 template 名前缀匹配）。设备档位回填自 Firebase <code>device.mobile_os_hardware_model</code> / <code>mobile_model_name</code>，档位只对照 <code>device_user_classification.xlsx</code>「设备用户明细」的 <code>device_model</code> × <code>level</code>；不用表里的 user_id、class_id、class_count 或 8 月课堂结果。表里没有的机型记为未分档。完课只看 <code>trigger + type=trial + result=complete</code>。课后练习分体验课 / 正式课两页统计，不并进完课率：<code>afterclass_practice_click / start / end</code>。正式课页去掉 <code>732 / 1615 / 734 / 733 / 1661 / 1616</code>，完课看 <code>class_lesson_end + result=complete</code>。一课通常有词句 / 口语 / 听力三练。点击的 <code>content_id</code> 区分类型（<code>words_sentences</code> / <code>speaking</code> / <code>listening</code>）；开始和结束没有类型，按进入前最后一次类型点击归因。某练完成=该类型有 <code>end result=complete</code>，或卡片 <code>status=completed</code>。按同一 <code>user_id + lesson_id</code> 挂到对应课堂。练习功能自 1.8.0（2026-09-21）起计入可练分母。</p>
+<p class="how" id="board-how">底表：<code>Data/trial_lesson_completion_classes_enriched.csv</code>。课堂主表来自 <code>build_l1l4_trial_completion_board.py</code>；英文能力回填自 L1/L2/L3/L4 干净样本；版本回填自各课首次 <code>class_stage_start</code> template。wrap-up 时间回填自各课 <code>wrapup_summary_video_trail</code> 的首次 <code>class_stage_start</code>（各课 ID 不同，按 template 名前缀匹配）。设备档位回填自 Firebase <code>device.mobile_os_hardware_model</code> / <code>mobile_model_name</code>，档位只对照 <code>device_user_classification.xlsx</code>「设备用户明细」的 <code>device_model</code> × <code>level</code>；不用表里的 user_id、class_id、class_count 或 8 月课堂结果。表里没有的机型记为未分档。完课只看 <code>trigger + type=trial + result=complete</code>。课后练习分体验课 / 正式课两页统计，不并进完课率：<code>afterclass_practice_click / start / end</code>。正式课页去掉 <code>732 / 1615 / 734 / 733 / 1661 / 1616</code>，完课看 <code>class_lesson_end + result=complete</code>。一课通常有词句 / 口语 / 听力三练。点击的 <code>content_id</code> 区分类型（<code>words_sentences</code> / <code>speaking</code> / <code>listening</code>）；开始和结束没有类型，按进入前最后一次类型点击归因。某练完成=该类型有 <code>end result=complete</code>，或卡片 <code>status=completed</code>。按同一 <code>user_id + lesson_id</code> 挂到对应课堂。练习功能自 1.8.0（2026-09-21）起计入可练分母。</p>
 
 <script type="text/plain" id="class-csv">3,2026-08-01T00:21:51,2026-08-01T00:28:21,韩国,9–12,,1,2026-08-01T00:21:51|2026-08-01T00:24:23|2026-08-01T00:24:34|2026-08-01T00:25:04|2026-08-01T00:25:56|2026-08-01T00:26:15|2026-08-01T00:26:58|2026-08-01T00:27:52|2026-08-01T00:28:10,2026-08-01T00:26:15,未知,4cfc4c4ed272,li34:1;ph36:1;pv:2;lci:1;ri:1;rc1:1;rc2:1;rc3:1;soa:1;ste:2;swo:1;wu34:1;bub:2;isw:1;woa:1;wsi:1;wt34:3;wp:2;lipre:1;liv:1;lipost:1;lipc:1,9–12,wu34:0|ri:66|li34:84|pv:157|pv:177|wt34:216|wt34:272|wt34:305|bub:337|bub:359|wsi:378|isw:388|woa:399|rc1:534|ste:552|ste:5575|lci:5727|swo:5738|soa:5768|rc2:5820|wp:5839|wp:5882|ph36:5936|rc3:5954|lipre:0|liv:0|lipost:0|lipc:0,Android,0,0,0,,,,ws;0;0;0;;;|sp;0;0;0;;;|li;0;0;0;;;
 1,2026-08-01T00:48:13,2026-08-01T07:56:47,马来西亚,3–5,,1,2026-08-01T00:48:13|2026-08-01T00:49:11|2026-08-01T00:49:27|2026-08-01T00:50:11|2026-08-01T00:50:39|2026-08-01T00:51:32|2026-08-01T00:51:50|2026-08-01T00:52:38|2026-08-01T00:52:54|2026-08-01T00:53:26|2026-08-01T00:54:07|2026-08-01T00:56:48|2026-08-01T00:57:04|2026-08-01T00:59:39|2026-08-01T00:59:56|2026-08-01T07:53:29|2026-08-01T07:54:41|2026-08-01T07:54:54|2026-08-01T07:56:22|2026-08-01T07:56:37,2026-08-01T07:54:54,高端,a9d40626e106,li12:1;ph12:1;pv:1;lci:1;tth:2;ri:1;rc1:1;rc2:1;rc3:1;soa:2;ste:1;wu12:1;bub:1;woa:1;wt12:3;wp:1;lipre:1;liv:1;lipost:1;lipc:1,3–5,wu12:0|ri:57|li12:73|pv:117|wt12:145|tth:198|wt12:216|tth:264|wt12:280|bub:312|woa:353|rc1:514|ste:530|lci:685|soa:702|soa:25515|rc2:25588|wp:25600|ph12:25689|rc3:25703|lipre:74|liv:76|lipost:95|lipc:119,Android,0,0,0,,,,ws;0;0;0;;;|sp;0;0;0;;;|li;0;0;0;;;
@@ -17003,6 +17014,688 @@ const ABILITY_FILTERS = [
   {value:"unknown",label:"能力未知"},
 ];
 const LINE_COLORS = ["#4a7cff","#c47b1a","#2a8f6f","#b42318"];
+const I18N = {
+zh: {
+tabCourse:"体验课完课率",
+tabHomework:"体验课课后练习完成情况",
+tabFormalHw:"正式课课后练习完成情况",
+titleCourse:"体验课完课率看板",
+titleHomework:"体验课课后练习完成情况",
+titleFormalHw:"正式课课后练习完成情况",
+descCourse:"L1–L4 完课率、马来/越南/韩国/沙特/日本对照，以及 L1–L4 的 V1 / V2 版本对比合在同一页。窗口内任意一次 <code>class_stage_start</code> 都算开课，完课看 <code>trigger + type=trial + result=complete</code>，分母是独立 <code>class_id</code>。改 UTC 时间窗后，下面所有数字一起重算。",
+descHomework:"这一页单独看 L1–L4 体验课完课，以及对应课后练习。课后练习不并进上一页的完课率。开课仍是窗口内任意一次 <code>class_stage_start</code>；课程完课看 <code>trigger + type=trial + result=complete</code>。一课通常有词句 / 口语 / 听力三练，分别统计完成率。练习挂到同一用户、同一课的课堂。1.8.0 于 2026-09-21 上线，可练分母只计入当天 00:00 UTC 及之后完课的课堂。",
+descFormal:"这一页只看 L1–L4 正式课完课和对应课后练习，不含体验课 <code>732 / 1615 / 734 / 733</code>，也不含 <code>1661 / 1616</code>。开课是窗口内任意一次 <code>class_stage_start</code>；课程完课看 <code>class_lesson_end + result=complete</code>。课后练习不并进完课率。一课通常有词句 / 口语 / 听力三练。练习挂到同一用户、同一课的课堂。1.8.0 于 2026-09-21 上线，可练分母只计入当天 00:00 UTC 及之后完课的课堂。",
+coverCourse:"数据覆盖 {start} 至 {end} UTC。窗口结束后才上报的完课，不计入该窗口。",
+coverHw:"数据覆盖 {start} 至 {end} UTC。课后练习自 2026-09-21 起统计。窗口结束后才上报的完课或练习完成，不计入该窗口。",
+filter:"筛选",
+filterUtc:"日期和时间都按 UTC，不做本地换算",
+preset:"快捷窗口",
+countryMulti:"人群国家（可多选）",
+tierMulti:"设备档位（可多选）",
+age:"用户年龄",
+ability:"英文能力",
+exclude13:"排除 13+ 用户",
+startDate:"开始日期 UTC",
+startTime:"开始时间 UTC",
+endDate:"结束日期 UTC",
+endTime:"结束时间 UTC",
+allLevels:"全部 Level",
+allCountries:"全部国家",
+allTiers:"全部档位",
+allAges:"全部年龄",
+allAbility:"全部英文能力",
+unknownAge:"年龄未知",
+unknownAbility:"能力未知",
+unknown:"未知",
+other:"其他",
+otherOs:"其他",
+unversioned:"未分版本",
+formalLesson:"正式课",
+high:"高端",
+mid:"中端",
+low:"低端",
+unclassified:"未分档",
+malaysia:"马来",
+vietnam:"越南",
+korea:"韩国",
+saudi:"沙特",
+japan:"日本",
+thailand:"泰国",
+indonesia:"印尼",
+allSeg:"全量",
+presetCurrent:"9/14 00:00 – 最新",
+presetThisWeek:"本UTC周（周一至今）",
+presetLast7:"近7个完整UTC日",
+presetSince180:"自1.8.0上线（9/21至今）",
+presetSince180Short:"自1.8.0上线",
+presetPrevWeek:"上一UTC周 {range}",
+presetAugust:"2026年8月",
+presetAll:"8/01 00:00 – 最新",
+presetAllShort:"8/01至今",
+presetCustom:"自定义 UTC 窗口",
+prev:"上期",
+total:"合计",
+started:"开课",
+completed:"完课",
+completion:"完课率",
+courseCompletion:"课程完课率",
+users:"用户",
+doneUsers:"完课用户",
+classes:"节",
+atLeastOneComplete:"至少 1 节完课",
+currentFilter:"当前筛选 {window} · {segment}",
+currentWindow:"当前窗口 {window} · {segment} · 开课 {n} 节 · 对比上期 {prev}",
+exclude13tag:"排除13+用户",
+invalidTime:"<b>时间格式无效</b>　请使用 UTC 日期 YYYY-MM-DD 和时间 HH:MM:SS，且开始不晚于结束。下方暂时回退到 9/14 00:00:00 – 最新。",
+noStarts:"<b>这个 UTC 窗口没有开课</b>　可放宽时间窗，或把人群改回全部国家。数据最早从 {start} UTC 开始。",
+secRate:"体验课完课率（{segment}）",
+secAnalysis:"完课率分析",
+secFocus:"马来 / 越南 / 韩国 / 沙特 / 日本 · 分 Level 完课率",
+secProfile:"核心国家 · 年龄 × 英文能力",
+secFunnel:"Template触达漏斗",
+secVersion:"版本对比 · V1 vs V2",
+secAgeLevel:"年龄 × 级别 × 完课率",
+secDailyHour:"分小时完课率",
+secDailyDay:"分日完课率",
+secDailyCountryHour:"分小时 × 国家段",
+secDailyCountryDay:"分日 × 国家段",
+secDailyLevelHour:"分小时 × Level",
+secDailyLevelDay:"分日 × Level",
+secCountry:"国家 × Level",
+secCountryOne:"{level} 分国家",
+secCoreAge:"核心年龄段用户完课情况",
+secAge:"各年龄段整体完课率",
+secAbility:"英文能力完课率",
+secAgeAbility:"年龄 × 英文能力",
+secDevice:"设备档位 x 完课率",
+secHwRate:"课程与课后练习",
+secHwLevel:"分 Level",
+secHwFunnel:"课后练习漏斗",
+secHwDaily:"分日完成情况",
+secHwFocus:"马来 / 越南 / 韩国 / 沙特 / 日本",
+focusNames:"马来、越南、韩国、沙特、日本",
+analysisIntro:"对照上一相同时长周期 {prev}。改 UTC 窗口或筛选后，这一节按当前数字重写。先写马来、越南、韩国、沙特、日本的完课率和开课占比；泰国、印尼或其他国家只有在把本级别完课率往下拉时才写出。核心用户按 5–8 岁看占比和完课率相对上期的变化，并和这五个国家交叉。英文能力只在已回填的课里对比，回填不足时不拿能力结构解释完课。L3 / L4 另写距 50% 的缺口。",
+country:"国家",
+profile:"进课画像",
+gap50:"距 50%",
+prevNone:"上期无对照",
+prevRate:"上期 {rate}，",
+noStartPeriod:"本期没有开课。",
+noPrevLevel:"上期该级别没有对照课堂。",
+focusNoStart:"{name}本期没有开课（上期 {prev}）",
+focusLine:"{name} {rate} · {count}，占开课 {share}%",
+prevBit:"上期 {rate}%（{delta}）",
+shareBit:"占比 {from}%→{to}%（{delta}）",
+belowLevel:"低于本级别 {gap}pp",
+aboveLevel:"高于本级别 {gap}pp",
+dragLine:"{label} {rate}% · {count}，占开课 {share}%，把整体往下拉 {drag}pp",
+focusLead:"马来、越南、韩国、沙特、日本：{lines}",
+focusEmpty:"马来、越南、韩国、沙特、日本在这个窗口几乎没有开课",
+watchLead:"泰国、印尼或其他国家里，把整体往下拉的是{lines}",
+abilityShift:"{key} 占比 {from}%→{to}%（{delta}）",
+abilityRate:"，完课率 {rate}%",
+noCore:"本期没有识别到 5–8 岁核心用户",
+coreLead:"核心用户是 5–8 岁，占开课 {share}%（{count}），完课率 {rate}",
+coreVsPrev:"。相对上期，占比 {from}%→{to}%（{delta}），完课率 {fromR}%→{toR}%（{rateDelta}）",
+coreStable:"，5–8 岁的占比和完课率变化不大",
+restDrag:"。5–8 岁以外完课率 {rate}%（{count}，占 {share}%），把整体往下拉 {drag}pp",
+coreInner:"5–8 岁内部，{lines}",
+yearShare:"{year} 岁占比 {from}%→{to}%（{delta}）",
+yearRate:"，完课率 {rate}%",
+abilityFillShift:"英文能力回填比例 {from}%→{to}%，未回填不能当成能力变化",
+abilityFillLow:"英文能力回填不足（本期 {now}%，5–8 岁 {core}%），不能拿能力结构解释完课率",
+abilityScopeCore:"5–8 岁里已填写英文能力的用户",
+abilityScopeAll:"已填写英文能力的用户",
+abilityChanged:"{scope}里，{lines}",
+abilityStable:"{scope}里，能力结构和完课率相对上期变化不大",
+crossLead:"五国 × 5–8 岁：{lines}",
+belowCountry:"，低于该国整体",
+aboveCountry:"，高于该国整体",
+watchCore:"{label}的 5–8 岁 {rate}%（{count}），把整体往下拉 {drag}pp",
+abilityCrossLead:"国家 × 英文能力：{lines}",
+abilityCrossItem:"{name} × {ability} {rate}%（{count}，占该国已填能力 {share}%）",
+shareDelta:"，占比 {delta}",
+profileFixed:"当前筛选已经固定了年龄或英文能力，这里不再重复拆画像结构。",
+gapSmall:"本期开课只有 {n} 节，距 50% 的缺口还不稳定。",
+gapDone:"已经达到或超过 50%（{rate}%）。",
+gapLead:"目标 50%，本期 {rate}%，还差 {gap}pp",
+gapPull:"。相对 50% 拉动更大的是{lines}",
+gapItem:"{label} {rate}%（{count}，占开课 {share}%，拉动 {pull}pp）",
+gapAdvice:"。要提到 50%，先看这些低完课率、高开课占比叠加的人群课中体验，而不是先改分班",
+otherCountries:"其他国家",
+coreAge:"5–8 岁",
+nonCoreAge:"5–8 岁以外",
+coreCross:"{name} × 5–8 岁",
+and:"以及",
+comma:"、",
+hwOverall:"整体",
+hwOpenAny:"进入了任意一个课后练习的占比",
+hwEnterWs:"进入 word & sentences 的占比",
+hwEnterSp:"进入 speaking 的占比",
+hwEnterLi:"进入 listening 的占比",
+hwDoneWs:"word & sentences 完成率",
+hwDoneSp:"speaking 完成率",
+hwDoneLi:"listening 完成率",
+hwDoneAny:"课后练习完成率",
+hwAll3Start:"完成AI课+3个课后练习 / 开课",
+hwAll3Done:"完成AI课+3个课后练习 / 完课",
+hwEnterPractice:"进入练习",
+funnelStart:"开课",
+funnelComplete:"完课",
+funnelEligible:"可练完课（9/21及之后完课）",
+funnelClick:"点击课后练习",
+funnelHwStart:"开始课后练习（任一）",
+funnelHwAny:"完成任一课后练习",
+funnelStartedX:"开始了 {name}",
+funnelFinishedX:"完成了 {name}",
+reach:"触达",
+avgMin:"平均耗时",
+fromPrev:"上步{rate}",
+funnelNoteAll:"柱宽按开课量。右侧「上步」是相对前一步的转化。完成任一课后练习=任意一个练习 end result=complete，三类完成不再并排占步。点击练习不是必经埋点。",
+funnelNoteType:"只看该练：开始了 → 完成了。开始了=开启该练任务（点过该练卡片，或该练已开始/已完成）。完成了=该练完成。柱宽按开始了该练的任务数。",
+hwLeadTrial:"课程完课率与上一页相同，完课看 <code>trigger + type=trial + result=complete</code>。",
+hwLeadFormal:"正式课完课看 <code>class_lesson_end + result=complete</code>，不含 732 / 1615 / 734 / 733 / 1661 / 1616。",
+hwLeadRest:"不把练习算进完课。<b>可练完课</b>=完课时间 ≥ 2026-09-21 00:00 UTC 且 ≤ 窗口结束（1.8.0 才有课后练习）。完课且 ≥9/21 的课堂，每课解锁词句 / 口语 / 听力各 1 个任务。<b>进入 word & sentences / speaking / listening 的占比</b>=开启该练的任务数 / 解锁了的该练任务数。开启=点过该练卡片（<code>afterclass_practice_click</code>，<code>content_id</code> 为 <code>words_sentences</code> / <code>speaking</code> / <code>listening</code>），或该练已开始/已完成。<b>进入了任意一个课后练习的占比</b>=三类进入的并集 / 可练完课，一节课进了多个练习只计 1，因此一定不低于后面三个进入数。<code>afterclass_practice_start</code> 没有练习类型，不能拿它当「进入任意一个」，否则会低于点过卡片但还没 start 的三类进入。<b>课后练习完成率</b>=有 <code>afterclass_practice_start</code> 的课堂里，出现 <code>afterclass_practice_end</code> 且 <code>result=complete</code> 的比例，完成任意一个即可。某练完成=该类型有 <code>end result=complete</code>，或事后点到该卡片 <code>status=completed</code>，时间都要落在窗口结束前。<b>完成AI课+3个课后练习 / 开课</b>=课程完课并且三练都完成，占窗口开课。<b>完成AI课+3个课后练习 / 完课</b>=同样分子，分母改成窗口内完课。",
+hwLevelNote:"进入练习、三类进入占比、三类完成率的分母都是 9/21 及之后完课的课堂。进入练习是三类进入的并集。课后练习完成率的分母仍是有 afterclass_practice_start 的课堂。完成AI课+3个课后练习有两列：一列占开课，一列占完课。",
+hwDailyNote:"按课堂在窗口内的首次开课时间归日。",
+hwFocusNote:"不受上方人群国家下拉影响，仍随时间窗、年龄、能力和「排除 13+」重算。",
+hwRule:"<b>口径</b>　",
+v1Warmup:"V1 热身开场",
+v2Leadin:"V2 直接导入",
+v2vsV1:"V2相对V1",
+showV1:"展示V1",
+hideV1:"收起V1",
+expand:"展开",
+collapse:"收起",
+versionCollapsed:"默认折叠。点右侧展开查看 V1 / V2 完课率和画像。",
+funnelOpen:"{title} · 开课 {n}",
+funnelEmpty:"当前筛选下该 Level 没有开课。",
+funnelCaption:"触达=该 Template 至少第 n 次 <code>class_stage_start</code>。右侧平均耗时=完成了该步并进入下一步的课堂，该步停留时长的平均值，单位 min；单步超过 20 分钟的重进间隔不计入。最后一行「完课」不展示平均耗时。L2–L4 分 V1 / V2 并列。L1 的 V1 已下架，默认只展示 V2，点右侧「展示V1」可对照下架前漏斗。原来的「导入 / 故事导入」拆成 lead-in 内三步：pre-video、video、post-video。欢迎/引出课程视频=进入 pre-video。播放课程视频=完成 video。引出词汇教学视频=完成 post-video，或已经开始单词教学视频（有课 post-video 未标 COMPLETED / 步骤行滞后，但 class_stage_start 已到 play-video，按触达计，避免后一步反超）。V1 的 pre-video 经常瞬间完成，所以播放不看完成 pre-video。后面的「单词教学视频」「教词 1 / 单词教学」仍按原模板计。每列分母是该版本开课，最后一步完课对应该版本完课率。窗口里还没有该版本开课的列会收起。完课仍看 trial complete。漏斗 Level Tab 只切这条漏斗，不改上方完课率筛选。",
+profileShare:"画像分布（占该版本开课）",
+ageShare:"年龄占比（%）",
+abilityShare:"Onboarding 英文能力占比（%）",
+countryShare:"主要国家占比（%）",
+osShare:"设备系统占比（%）",
+noProfile:"当前筛选下没有画像可对比。",
+versionProfileNote:"画像来自 Onboarding 年龄 / 英文能力，以及开课课堂的国家和设备系统。纵轴是占该版本开课的比例。L1 不展示画像。切 Level Tab 只换这一段，不改漏斗、也不改上方完课率筛选。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。",
+ageYear:"{age} 岁",
+dailyCaption:"横轴：开课时间（UTC {unit}）；纵轴：课堂完课率（%）。窗口不超过 48 小时时切到小时。",
+hour:"小时",
+day:"日期",
+cellRate:"单元格为完课率 · 完课/开课。",
+dailyLevelNote:"按窗口内第一次 class_stage_start 的 UTC 时间入桶。",
+countryNote:"国家取课堂 trigger 事件 country 众数。",
+coreUsers:"5–8 岁用户",
+coreDone:"完课用户",
+coreClasses:"开课课堂 · {count}",
+coreShare:"占当前窗口开课量的百分比",
+coreUserRate:"用户完课率",
+coreClassRate:"课堂完课率",
+coreAbilityTitle:"5–8 岁用户的英文能力",
+coreAbilityShare:"占 5–8 岁用户",
+coreAbilityLevel:"各 Level × 英文能力",
+coreNote:"核心年龄=Onboarding 单岁 5 / 6 / 7 / 8；旧口径只有年龄段时计入 6–8，3–5 无法拆出 5 岁，不计入。用户按独立 user 去重，一人上了多个 Level 会分别计入各 Level。课堂完课率与上方同一口径。不受上方「用户年龄」下拉影响，随国家、英文能力、设备档位和「排除 13+」重算。",
+coreLegend:"核心年龄 5 / 6 / 7 / 8，以及旧口径 6–8",
+otherAges:"其他年龄",
+ageAxisYear:"横轴：Onboarding 年龄（9/14 起按单岁 + 13+ 细拆）；纵轴：课堂完课率（%）。绿色柱是核心年龄。此窗口起点在 9/14 及以后，按每年一档。仍看到 3–5 / 6–8 / 9–12 的，是改版前填的旧口径。",
+ageAxisBand:"横轴：Onboarding 年龄段；纵轴：课堂完课率（%）。绿色柱是核心年龄。窗口起点早于 9/14，仍按 3–5 / 6–8 / 9–12。",
+abilityNote:"能力字段覆盖近期干净样本，更早窗口可能偏少。",
+yearAgeTitle:"9/14 及之后 · 单岁年龄",
+histAgeTitle:"历史年龄段",
+ageAbilityNote:"只统计窗口内已回填英文能力的课堂。",
+ageAbilitySplit:"窗口起点在 9/14 及以后时，上面是单岁交叉，下面是改版前未拆开的年龄段。",
+cross:"交叉",
+deviceNote:"机型来自 Firebase 硬件型号，档位只对照设备用户明细表的 device_model × level，不用表里的课堂或用户历史。交叉随当前 UTC 窗口、国家、级别、年龄、能力一起重算。单元格为完课率 · 完课/开课。",
+tierOfDone:"占完课",
+tierOfMiss:"占未完课",
+prevCompletion:"上期完课率",
+incomplete:"未完课",
+incompleteN:"未完{n}",
+deviceShareNote:"占完课 / 占未完课：该档位在完课课堂、未完课课堂里的占比。横轴：体验课 Level；纵轴：该档位完课率（%）。",
+tierMixTitle:"各 Level · 完课 / 未完课用户的档位占比",
+tierMixNote:"完课用户：该 Level 窗口内至少 1 节完课；未完课用户：该 Level 有开课且 0 节完课。同一用户在同一 Level 只计一次。格子是占该组用户% · 人数。",
+doneUsersAxis:"横轴：体验课 Level；纵轴：该档位占该 Level 完课用户（%）。",
+missUsersAxis:"横轴：体验课 Level；纵轴：该档位占该 Level 未完课用户（%）。",
+tierCountryTitle:"各档位 · 国家占比",
+tierCountryNote:"各档位内部的开课国家结构。横轴：设备档位；纵轴：该国占该档位开课（%）。格子是占该档位开课% · 开课数。",
+tierCountryRate:"上表：档位 × 核心国家完课率。",
+tierCountryLevel:"档位 × 国家 × Level：每个格子是完课率 · 完课/开课 · 未完课数。",
+doneUserCol:"完课用户",
+missUserCol:"未完课用户",
+tierShareCol:"{tier}占比",
+countryShareCol:"{name}占比",
+noClass:"{level} 无开课",
+abilityFill:"{level} 能力回填 {n}/{d}",
+mainCross:"{level} 主交叉 {age} × {ability} {detail}（占{share}）",
+noCross:"该窗口没有 {name} 的交叉开课。",
+koreaVs:"韩国主交叉 vs 马来 / 越南同画像",
+sameProfile:"同画像",
+noSameProfile:"无同画像",
+ofLevel:"占该Level",
+utcHour:"UTC 小时",
+utcDate:"UTC 日期",
+lesson:"课程",
+level:"Level",
+ageCol:"年龄",
+abilityCol:"英文能力",
+prevPeriodRate:"上一周期完课率",
+ofThisLevel:"占该Level",
+deviceCol:"档位",
+how:"底表：<code>Data/trial_lesson_completion_classes_enriched.csv</code>。课堂主表来自 <code>build_l1l4_trial_completion_board.py</code>；英文能力回填自 L1/L2/L3/L4 干净样本；版本回填自各课首次 <code>class_stage_start</code> template。wrap-up 时间回填自各课 <code>wrapup_summary_video_trail</code> 的首次 <code>class_stage_start</code>（各课 ID 不同，按 template 名前缀匹配）。设备档位回填自 Firebase <code>device.mobile_os_hardware_model</code> / <code>mobile_model_name</code>，档位只对照 <code>device_user_classification.xlsx</code>「设备用户明细」的 <code>device_model</code> × <code>level</code>；不用表里的 user_id、class_id、class_count 或 8 月课堂结果。表里没有的机型记为未分档。完课只看 <code>trigger + type=trial + result=complete</code>。课后练习分体验课 / 正式课两页统计，不并进完课率：<code>afterclass_practice_click / start / end</code>。正式课页去掉 <code>732 / 1615 / 734 / 733 / 1661 / 1616</code>，完课看 <code>class_lesson_end + result=complete</code>。一课通常有词句 / 口语 / 听力三练。点击的 <code>content_id</code> 区分类型（<code>words_sentences</code> / <code>speaking</code> / <code>listening</code>）；开始和结束没有类型，按进入前最后一次类型点击归因。某练完成=该类型有 <code>end result=complete</code>，或卡片 <code>status=completed</code>。按同一 <code>user_id + lesson_id</code> 挂到对应课堂。练习功能自 1.8.0（2026-09-21）起计入可练分母。",
+},
+en: {
+tabCourse:"Trial completion",
+tabHomework:"Trial homework",
+tabFormalHw:"Regular-lesson homework",
+titleCourse:"Trial lesson completion",
+titleHomework:"Trial homework completion",
+titleFormalHw:"Regular-lesson homework",
+descCourse:"L1–L4 completion, Malaysia / Vietnam / Korea / Saudi / Japan, and V1 / V2 on one page. Any <code>class_stage_start</code> in the UTC window counts as a start. Complete = <code>trigger + type=trial + result=complete</code>. Denominator is distinct <code>class_id</code>. Changing the UTC window recalculates every number below.",
+descHomework:"This page is L1–L4 trial completion plus the matching homework. Homework is not mixed into the completion rates on the previous tab. A start is still any <code>class_stage_start</code> in the window. Course complete = <code>trigger + type=trial + result=complete</code>. A course usually has words & sentences / speaking / listening. Homework is attached to the same user and lesson. 1.8.0 launched on 2026-09-21; the eligible denominator only includes classes completed at or after 00:00 UTC that day.",
+descFormal:"This page is L1–L4 regular lessons only — not trial <code>732 / 1615 / 734 / 733</code>, and not <code>1661 / 1616</code>. A start is any <code>class_stage_start</code> in the window. Course complete = <code>class_lesson_end + result=complete</code>. Homework is not mixed into completion. A course usually has words & sentences / speaking / listening. Homework is attached to the same user and lesson. 1.8.0 launched on 2026-09-21; the eligible denominator only includes classes completed at or after 00:00 UTC that day.",
+coverCourse:"Data from {start} to {end} UTC. Completes reported after the window end are not counted in that window.",
+coverHw:"Data from {start} to {end} UTC. Homework is counted from 2026-09-21. Completes or homework finishes reported after the window end are not counted in that window.",
+filter:"Filters",
+filterUtc:"Dates and times are UTC. No local conversion.",
+preset:"Shortcut window",
+countryMulti:"Countries (multi-select)",
+tierMulti:"Device tier (multi-select)",
+age:"Learner age",
+ability:"English ability",
+exclude13:"Exclude ages 13+",
+startDate:"Start date UTC",
+startTime:"Start time UTC",
+endDate:"End date UTC",
+endTime:"End time UTC",
+allLevels:"All levels",
+allCountries:"All countries",
+allTiers:"All tiers",
+allAges:"All ages",
+allAbility:"All English abilities",
+unknownAge:"Unknown age",
+unknownAbility:"Unknown ability",
+unknown:"Unknown",
+other:"Other",
+otherOs:"Other",
+unversioned:"Unversioned",
+formalLesson:"Regular lesson",
+high:"High",
+mid:"Mid",
+low:"Low",
+unclassified:"Unclassified",
+malaysia:"Malaysia",
+vietnam:"Vietnam",
+korea:"Korea",
+saudi:"Saudi",
+japan:"Japan",
+thailand:"Thailand",
+indonesia:"Indonesia",
+allSeg:"All",
+presetCurrent:"Sep 14 00:00 – latest",
+presetThisWeek:"This UTC week (Mon–now)",
+presetLast7:"Last 7 full UTC days",
+presetSince180:"Since 1.8.0 launch (Sep 21–now)",
+presetSince180Short:"Since 1.8.0 launch",
+presetPrevWeek:"Previous UTC week {range}",
+presetAugust:"August 2026",
+presetAll:"Aug 1 00:00 – latest",
+presetAllShort:"Aug 1 – now",
+presetCustom:"Custom UTC window",
+prev:"Prev",
+total:"Total",
+started:"Started",
+completed:"Completed",
+completion:"Completion",
+courseCompletion:"Course completion",
+users:"Learners",
+doneUsers:"Completed learners",
+classes:"classes",
+atLeastOneComplete:"at least 1 completed class",
+currentFilter:"Current filter {window} · {segment}",
+currentWindow:"Current window {window} · {segment} · {n} starts · vs previous {prev}",
+exclude13tag:"Exclude 13+",
+invalidTime:"<b>Invalid time</b>　Use UTC date YYYY-MM-DD and time HH:MM:SS, and start must not be after end. Temporarily falling back to Sep 14 00:00:00 – latest.",
+noStarts:"<b>No starts in this UTC window</b>　Widen the window, or switch countries back to all. Data starts at {start} UTC.",
+secRate:"Trial completion ({segment})",
+secAnalysis:"Completion analysis",
+secFocus:"Malaysia / Vietnam / Korea / Saudi / Japan · completion by level",
+secProfile:"Core countries · age × English ability",
+secFunnel:"Template reach funnel",
+secVersion:"Version comparison · V1 vs V2",
+secAgeLevel:"Age × level × completion",
+secDailyHour:"Hourly completion",
+secDailyDay:"Daily completion",
+secDailyCountryHour:"Hourly × country",
+secDailyCountryDay:"Daily × country",
+secDailyLevelHour:"Hourly × level",
+secDailyLevelDay:"Daily × level",
+secCountry:"Country × level",
+secCountryOne:"{level} by country",
+secCoreAge:"Core-age completion",
+secAge:"Overall completion by age",
+secAbility:"Completion by English ability",
+secAgeAbility:"Age × English ability",
+secDevice:"Device tier × completion",
+secHwRate:"Course and homework",
+secHwLevel:"By level",
+secHwFunnel:"Homework funnel",
+secHwDaily:"Daily completion",
+secHwFocus:"Malaysia / Vietnam / Korea / Saudi / Japan",
+focusNames:"Malaysia, Vietnam, Korea, Saudi, Japan",
+analysisIntro:"Compared with the previous period of the same length, {prev}. This section rewrites from the current numbers after you change the UTC window or filters. It leads with Malaysia, Vietnam, Korea, Saudi, and Japan completion and start share. Thailand, Indonesia, or other countries are written only when they drag this level down. Core learners are ages 5–8: share, completion vs previous, and a cross with these five countries. English ability is compared only among filled classes; if fill is too low, ability mix is not used to explain completion. L3 / L4 also show the gap to 50%.",
+country:"Country",
+profile:"Learner mix",
+gap50:"Gap to 50%",
+prevNone:"No previous comparison",
+prevRate:"Previous {rate},",
+noStartPeriod:"No starts this period.",
+noPrevLevel:"This level had no comparison classes last period.",
+focusNoStart:"{name} had no starts this period (previous {prev})",
+focusLine:"{name} {rate} · {count}, {share}% of starts",
+prevBit:"previous {rate}% ({delta})",
+shareBit:"share {from}%→{to}% ({delta})",
+belowLevel:"{gap}pp below this level",
+aboveLevel:"{gap}pp above this level",
+dragLine:"{label} {rate}% · {count}, {share}% of starts, dragging the total down {drag}pp",
+focusLead:"Malaysia, Vietnam, Korea, Saudi, Japan: {lines}",
+focusEmpty:"Malaysia, Vietnam, Korea, Saudi, and Japan had almost no starts in this window",
+watchLead:"Among Thailand, Indonesia, or other countries, the drag comes from {lines}",
+abilityShift:"{key} share {from}%→{to}% ({delta})",
+abilityRate:", completion {rate}%",
+noCore:"No ages 5–8 core learners identified this period",
+coreLead:"Core learners are ages 5–8, {share}% of starts ({count}), completion {rate}",
+coreVsPrev:". vs previous, share {from}%→{to}% ({delta}), completion {fromR}%→{toR}% ({rateDelta})",
+coreStable:", ages 5–8 share and completion barely moved",
+restDrag:". Outside ages 5–8, completion is {rate}% ({count}, {share}%), dragging the total down {drag}pp",
+coreInner:"Inside ages 5–8, {lines}",
+yearShare:"age {year} share {from}%→{to}% ({delta})",
+yearRate:", completion {rate}%",
+abilityFillShift:"English-ability fill {from}%→{to}%; unfilled rows are not an ability change",
+abilityFillLow:"English-ability fill is too low (this period {now}%, ages 5–8 {core}%), so ability mix cannot explain completion",
+abilityScopeCore:"among ages 5–8 with English ability filled",
+abilityScopeAll:"among learners with English ability filled",
+abilityChanged:"{scope}, {lines}",
+abilityStable:"{scope}, ability mix and completion barely moved vs previous",
+crossLead:"Five countries × ages 5–8: {lines}",
+belowCountry:", below that country overall",
+aboveCountry:", above that country overall",
+watchCore:"{label} ages 5–8 {rate}% ({count}), dragging the total down {drag}pp",
+abilityCrossLead:"Country × English ability: {lines}",
+abilityCrossItem:"{name} × {ability} {rate}% ({count}, {share}% of that country's filled ability)",
+shareDelta:", share {delta}",
+profileFixed:"Age or English ability is already fixed by the current filter, so this section does not split the mix again.",
+gapSmall:"Only {n} starts this period, so the gap to 50% is still noisy.",
+gapDone:"Already at or above 50% ({rate}%).",
+gapLead:"Target 50%, this period {rate}%, still {gap}pp short",
+gapPull:". The larger pulls vs 50% are {lines}",
+gapItem:"{label} {rate}% ({count}, {share}% of starts, pull {pull}pp)",
+gapAdvice:". To reach 50%, look first at in-class experience for these low-completion, high-share groups, not placement first",
+otherCountries:"Other countries",
+coreAge:"Ages 5–8",
+nonCoreAge:"Outside ages 5–8",
+coreCross:"{name} × ages 5–8",
+and:"and",
+comma:"、",
+hwOverall:"Overall",
+hwOpenAny:"Entered any homework",
+hwEnterWs:"Entered word & sentences",
+hwEnterSp:"Entered speaking",
+hwEnterLi:"Entered listening",
+hwDoneWs:"word & sentences completion",
+hwDoneSp:"speaking completion",
+hwDoneLi:"listening completion",
+hwDoneAny:"Homework completion",
+hwAll3Start:"Finished AI lesson + 3 homework / starts",
+hwAll3Done:"Finished AI lesson + 3 homework / completes",
+hwEnterPractice:"Entered practice",
+funnelStart:"Started",
+funnelComplete:"Completed",
+funnelEligible:"Eligible completes (completed on/after Sep 21)",
+funnelClick:"Clicked homework",
+funnelHwStart:"Started any homework",
+funnelHwAny:"Finished any homework",
+funnelStartedX:"Started {name}",
+funnelFinishedX:"Finished {name}",
+reach:"Reach",
+avgMin:"Avg time",
+fromPrev:"prev step {rate}",
+funnelNoteAll:"Bar width is vs starts. “Prev step” on the right is conversion from the previous step. Finished any homework = any practice <code>end result=complete</code>. Clicking homework is not a required event.",
+funnelNoteType:"This practice only: started → finished. Started = opened that practice (clicked its card, or it already started/finished). Finished = that practice completed. Bar width is vs starts of that practice.",
+hwRule:"<b>Definition</b>　",
+hwLeadTrial:"Course completion matches the previous tab: complete = <code>trigger + type=trial + result=complete</code>.",
+hwLeadFormal:"Regular-lesson complete = <code>class_lesson_end + result=complete</code>, excluding 732 / 1615 / 734 / 733 / 1661 / 1616.",
+hwLeadRest:"Homework is not counted as course complete. <b>Eligible complete</b> = complete time ≥ 2026-09-21 00:00 UTC and ≤ window end (homework exists only from 1.8.0). Each class completed on/after Sep 21 unlocks one words & sentences / speaking / listening task. <b>Entered word & sentences / speaking / listening</b> = opened tasks / unlocked tasks of that type. Opened = clicked that card (<code>afterclass_practice_click</code>, <code>content_id</code> is <code>words_sentences</code> / <code>speaking</code> / <code>listening</code>), or that practice already started/finished. <b>Entered any homework</b> = union of the three enters / eligible completes; one class that enters more than one practice still counts as 1, so this is never below any single enter. <code>afterclass_practice_start</code> has no practice type, so it is not “entered any”. <b>Homework completion</b> = among classes with <code>afterclass_practice_start</code>, the share with <code>afterclass_practice_end</code> and <code>result=complete</code> for any one practice. A type is complete if that type has <code>end result=complete</code>, or a later card <code>status=completed</code>, both before window end. <b>Finished AI lesson + 3 homework / starts</b> = course complete and all three practices done, over window starts. <b>Finished AI lesson + 3 homework / completes</b> = same numerator over window completes.",
+hwLevelNote:"Entered practice, the three enter rates, and the three completion rates all use classes completed on/after Sep 21 as the denominator. Entered practice is the union of the three enters. Homework completion still uses classes with afterclass_practice_start. Finished AI lesson + 3 homework has two columns: over starts, and over completes.",
+hwDailyNote:"Binned by the class’s first start time in the window.",
+hwFocusNote:"Ignores the country filter above; still recalculates with the time window, age, ability, and “exclude 13+”.",
+levelNote:"Entered practice, the three enter rates, and the three completion rates all use classes completed on/after Sep 21 as the denominator.",
+v1Warmup:"V1 warmup start",
+v2Leadin:"V2 direct lead-in",
+v2vsV1:"V2 vs V1",
+showV1:"Show V1",
+hideV1:"Hide V1",
+expand:"Expand",
+collapse:"Collapse",
+versionCollapsed:"Collapsed by default. Expand on the right to see V1 / V2 completion and profiles.",
+funnelOpen:"{title} · {n} starts",
+funnelEmpty:"No starts for this level under the current filter.",
+funnelCaption:"Reach = at least the nth <code>class_stage_start</code> of that template. Average time on the right = mean stay among classes that finished this step and entered the next, in minutes; re-entry gaps over 20 minutes are dropped. The last “Completed” row has no average time. L2–L4 show V1 / V2 side by side. L1 V1 is off-shelf, so V2 is shown by default; “Show V1” on the right compares the off-shelf funnel. The old “Lead-in / story lead-in” is split into pre-video, video, and post-video inside lead-in. Welcome / introduce course video = entered pre-video. Play course video = finished video. Introduce vocab video = finished post-video, or already started the vocab teaching video. V1 pre-video often finishes instantly, so play does not use finished pre-video. Later “Vocab teaching video” / “Teach word 1” still use the original templates. Each column’s denominator is that version’s starts; the last completed row is that version’s completion. Columns with no starts in the window are hidden. The funnel level tab only changes this funnel, not the completion filter above.",
+profileShare:"Profile mix (% of that version’s starts)",
+ageShare:"Age share (%)",
+abilityShare:"Onboarding English-ability share (%)",
+countryShare:"Main-country share (%)",
+osShare:"OS share (%)",
+noProfile:"No profiles to compare under the current filter.",
+versionProfileNote:"Profiles come from Onboarding age / English ability, plus country and OS of the started class. The axis is share of that version’s starts. L1 does not show profiles. The level tab here only changes this block. Recalculates with the UTC window, age, ability, and “exclude 13+”; ignores the country filter above.",
+ageYear:"Age {age}",
+dailyCaption:"X-axis: start time (UTC {unit}); Y-axis: class completion (%). Switches to hours when the window is 48 hours or less.",
+hour:"hour",
+day:"date",
+cellRate:"Each cell is completion · completed/started.",
+dailyLevelNote:"Binned by the UTC time of the first class_stage_start in the window.",
+countryNote:"Country is the mode of the class trigger event country.",
+coreUsers:"Ages 5–8 learners",
+coreDone:"Completed learners",
+coreClasses:"Started classes · {count}",
+coreShare:"Share of current-window starts",
+coreUserRate:"User completion",
+coreClassRate:"Class completion",
+coreAbilityTitle:"English ability of ages 5–8",
+coreAbilityShare:"Share of ages 5–8",
+coreAbilityLevel:"Each level × English ability",
+coreNote:"Core age = Onboarding single-year 5 / 6 / 7 / 8; the old band still counts 6–8. 3–5 cannot isolate age 5, so it is excluded. Learners are distinct users; one person in multiple levels is counted in each. Class completion uses the same definition as above. Ignores the age filter; recalculates with country, ability, tier, and “exclude 13+”.",
+coreLegend:"Core ages 5 / 6 / 7 / 8, plus old-band 6–8",
+otherAges:"Other ages",
+ageAxisYear:"X-axis: Onboarding age (from Sep 14, single year + 13+); Y-axis: class completion (%). Green bars are core ages. This window starts on/after Sep 14, so each year is its own row. 3–5 / 6–8 / 9–12 still appearing are the pre-change bands.",
+ageAxisBand:"X-axis: Onboarding age band; Y-axis: class completion (%). Green bars are core ages. This window starts before Sep 14, so bands stay 3–5 / 6–8 / 9–12.",
+abilityNote:"Ability is filled on recent clean samples; earlier windows may be sparse.",
+yearAgeTitle:"On/after Sep 14 · single-year age",
+histAgeTitle:"Historical age bands",
+ageAbilityNote:"Only classes in the window with English ability filled.",
+ageAbilitySplit:" When the window starts on/after Sep 14, the top table is single-year crosses and the bottom is unsplitted pre-change bands.",
+cross:"Cross",
+deviceNote:"Model comes from Firebase hardware; tier is only device_model × level from the device-user table, not class or user history there. Crosses recalculate with the current UTC window, country, level, age, and ability. Each cell is completion · completed/started.",
+tierOfDone:"Share of completes",
+tierOfMiss:"Share of incompletes",
+prevCompletion:"Previous completion",
+incomplete:"Incomplete",
+incompleteN:"incomplete {n}",
+deviceShareNote:"Share of completes / incompletes: that tier’s share among completed and incomplete classes. X-axis: trial level; Y-axis: that tier’s completion (%).",
+tierMixTitle:"Each level · tier mix of completed / incomplete learners",
+tierMixNote:"Completed learner: at least 1 complete in that level in the window. Incomplete learner: started that level and 0 completes. One user is counted once per level. Cells are % of that group · headcount.",
+doneUsersAxis:"X-axis: trial level; Y-axis: that tier’s share of completed learners in the level (%).",
+missUsersAxis:"X-axis: trial level; Y-axis: that tier’s share of incomplete learners in the level (%).",
+tierCountryTitle:"Each tier · country mix",
+tierCountryNote:"Country mix inside each tier. X-axis: device tier; Y-axis: that country’s share of the tier’s starts (%). Cells are % of that tier’s starts · start count.",
+tierCountryRate:"Above: tier × core-country completion.",
+tierCountryLevel:"Tier × country × level: each cell is completion · completed/started · incomplete count.",
+doneUserCol:"Completed learners",
+missUserCol:"Incomplete learners",
+tierShareCol:"{tier} share",
+countryShareCol:"{name} share",
+noClass:"{level} no starts",
+abilityFill:"{level} ability filled {n}/{d}",
+mainCross:"{level} main cross {age} × {ability} {detail} ({share} of level)",
+noCross:"No {name} cross starts in this window.",
+koreaVs:"Korea main cross vs same Malaysia / Vietnam profile",
+sameProfile:"same profile",
+noSameProfile:"No same profile",
+ofLevel:"of level",
+utcHour:"UTC hour",
+utcDate:"UTC date",
+lesson:"Lesson",
+level:"Level",
+ageCol:"Age",
+abilityCol:"English ability",
+prevPeriodRate:"Previous-period completion",
+ofThisLevel:"Share of level",
+deviceCol:"Tier",
+how:"Source table: <code>Data/trial_lesson_completion_classes_enriched.csv</code>. The class table comes from <code>build_l1l4_trial_completion_board.py</code>; English ability is filled from clean L1–L4 samples; version is the first <code>class_stage_start</code> template. Wrap-up time is the first <code>class_stage_start</code> of <code>wrapup_summary_video_trail</code>. Device tier is Firebase <code>device.mobile_os_hardware_model</code> / <code>mobile_model_name</code>, matched only to <code>device_model</code> × <code>level</code> in <code>device_user_classification.xlsx</code>. Models not in the table are unclassified. Trial complete = <code>trigger + type=trial + result=complete</code>. Homework is on separate trial / regular tabs and is not mixed into completion: <code>afterclass_practice_click / start / end</code>. The regular tab excludes <code>732 / 1615 / 734 / 733 / 1661 / 1616</code>; complete = <code>class_lesson_end + result=complete</code>. A course usually has words / speaking / listening. Click <code>content_id</code> distinguishes type; start/end have no type and use the last typed click. A type is complete if that type has <code>end result=complete</code> or card <code>status=completed</code>. Attached by the same <code>user_id + lesson_id</code>. Eligible homework starts from 1.8.0 (2026-09-21).",
+},
+};
+function isEn(){ return typeof state!=="undefined" && state.lang==="en"; }
+function t(key, vars){
+  const pack = isEn() ? I18N.en : I18N.zh;
+  let text = Object.prototype.hasOwnProperty.call(pack, key) ? pack[key] : (I18N.zh[key] || key);
+  if(vars){
+    for(const [k,v] of Object.entries(vars)){
+      text = text.split("{"+k+"}").join(String(v));
+    }
+  }
+  return text;
+}
+const COUNTRY_I18N = {
+  "马来西亚":{en:"Malaysia", enShort:"Malaysia"},
+  "越南":{en:"Vietnam", enShort:"Vietnam"},
+  "韩国":{en:"Korea", enShort:"Korea"},
+  "沙特阿拉伯":{en:"Saudi Arabia", enShort:"Saudi"},
+  "日本":{en:"Japan", enShort:"Japan"},
+  "泰国":{en:"Thailand", enShort:"Thailand"},
+  "印度尼西亚":{en:"Indonesia", enShort:"Indonesia"},
+  "其他":{en:"Other", enShort:"Other"},
+  "未知":{en:"Unknown", enShort:"Unknown"},
+};
+const TIER_I18N = {高端:"high",中端:"mid",低端:"low",未分档:"unclassified",未知:"unknown"};
+const FUNNEL_I18N = {
+  "热身":"Warm-up",
+  "奖励地图":"Reward map",
+  "奖励介绍":"Reward intro",
+  "导入-引出课程视频":"Lead-in: introduce course video",
+  "导入-播放课程视频":"Lead-in: play course video",
+  "导入-引出词汇教学视频":"Lead-in: introduce vocab video",
+  "导入-欢迎学生+课程介绍":"Lead-in: welcome + course intro",
+  "单词教学视频":"Vocab teaching video",
+  "教词 apple":"Teach apple",
+  "教词 bread":"Teach bread",
+  "教词 juice":"Teach juice",
+  "点听 1":"Tap-to-hear 1",
+  "点听 2":"Tap-to-hear 2",
+  "点听 3":"Tap-to-hear 3",
+  "戳泡泡":"Pop bubbles",
+  "泡泡 apple":"Bubble apple",
+  "泡泡 bread":"Bubble bread",
+  "泡泡 juice":"Bubble juice",
+  "单词口语测评":"Word speaking test",
+  "口语测评 apple":"Speaking test apple",
+  "口语测评 bread":"Speaking test bread",
+  "口语测评 juice":"Speaking test juice",
+  "宝箱 1":"Chest 1",
+  "宝箱 2":"Chest 2",
+  "宝箱 3":"Chest 3",
+  "句子教学":"Sentence teaching",
+  "听音选图":"Listen & choose image",
+  "句子口语":"Sentence speaking",
+  "收尾视频":"Wrap-up video",
+  "拍照":"Photo",
+  "单词教学":"Word teaching",
+  "气泡练习":"Bubble practice",
+  "选词练习":"Choose-word practice",
+  "单词口测":"Word oral",
+  "奖励箱1":"Chest 1",
+  "奖励箱2":"Chest 2",
+  "奖励箱3":"Chest 3",
+  "句型教学":"Pattern teaching",
+  "句子排序":"Sentence order",
+  "句子口测":"Sentence oral",
+  "总结视频":"Summary video",
+  "选图练习":"Choose-image practice",
+  "选图":"Choose image",
+  "选词":"Choose word",
+  "拼写":"Spelling",
+  "教词 cow":"Teach cow",
+  "教词 cat":"Teach cat",
+  "教词 horse":"Teach horse",
+  "泡泡 cow":"Bubble cow",
+  "泡泡 cat":"Bubble cat",
+  "泡泡 horse":"Bubble horse",
+  "选词 cow":"Choose cow",
+  "选词 cat":"Choose cat",
+  "选词 horse":"Choose horse",
+  "口语测评 cow":"Speaking test cow",
+  "口语测评 cat":"Speaking test cat",
+  "口语测评 horse":"Speaking test horse",
+  "教词 1":"Teach word 1",
+  "教词 2":"Teach word 2",
+  "教词 3":"Teach word 3",
+  "口测 1":"Oral 1",
+  "口测 2":"Oral 2",
+  "口测 3":"Oral 3",
+  "泡泡":"Bubble",
+  "完课":"Completed",
+};
+function displayCountry(name){
+  const raw = name || "未知";
+  if(!isEn()) return raw==="未知" ? "未知" : raw;
+  return (COUNTRY_I18N[raw] && COUNTRY_I18N[raw].en) || raw;
+}
+function displayCountryShort(name){
+  if(!isEn()){
+    if(name==="马来西亚") return "马来";
+    if(name==="沙特阿拉伯") return "沙特";
+    if(name==="印度尼西亚") return "印尼";
+    return name || "未知";
+  }
+  const raw = name || "未知";
+  return (COUNTRY_I18N[raw] && COUNTRY_I18N[raw].enShort) || raw;
+}
+function displayTier(tier){
+  const raw = tier || "未知";
+  if(!isEn()) return raw;
+  return t(TIER_I18N[raw] || "unknown");
+}
+function displayAge(age){
+  if(!age || age==="年龄未知" || age==="未知") return t("unknownAge");
+  if(isEn() && /^\d+$/.test(age)) return t("ageYear", {age});
+  if(isEn() && age.endsWith(" 岁")) return t("ageYear", {age: age.replace(" 岁","")});
+  return age;
+}
+function displayAbilityName(label){
+  if(!label || label==="能力未知") return t("unknownAbility");
+  return label;
+}
+function displayOs(code){
+  if(code==="iOS" || code==="Android") return code;
+  return t("otherOs");
+}
+function displayFunnel(label){
+  if(!isEn()) return label;
+  return FUNNEL_I18N[label] || label;
+}
+function displayLessonName(name){
+  if(name==="正式课") return t("formalLesson");
+  return name;
+}
+function focusTitle(){
+  return isEn() ? t("secHwFocus") : "马来 / 越南 / 韩国 / 沙特 / 日本";
+}
+function presetLabelOf(p){
+  if(p.value==="prevWeek"){
+    const range = String(p.label||"").replace(/^上一UTC周\s*/,"");
+    return isEn() ? t("presetPrevWeek", {range}) : p.label;
+  }
+  const keys = {current:"presetCurrent",thisWeek:"presetThisWeek",last7full:"presetLast7",since180:"presetSince180",august:"presetAugust",all:"presetAll",custom:"presetCustom"};
+  return keys[p.value] ? (isEn() ? t(keys[p.value]) : p.label) : p.label;
+}
 
 function parseUtcStamp(value){
   const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(String(value||"").trim());
@@ -17061,11 +17754,11 @@ function prevCmpText(curr, prev){
 }
 function cmpHTML(curr, prev){
   const a = rate(curr), b = rate(prev);
-  if(b===null) return `<div class="cmp">上期 —</div>`;
+  if(b===null) return `<div class="cmp">${t("prev")} —</div>`;
   const d = a===null ? null : Number((a-b).toFixed(1));
   const cls = d===null || d===0 ? "" : d>0 ? " up" : " down";
   const delta = d===null ? "—" : (d>0?"+":"")+d.toFixed(1)+"pp";
-  return `<div class="cmp">上期 ${rateText(prev)}<span class="${cls}">${delta}</span></div>`;
+  return `<div class="cmp">${t("prev")} ${rateText(prev)}<span class="${cls}">${delta}</span></div>`;
 }
 function makeLevelMetrics(){ return {1:emptyMetric(),2:emptyMetric(),3:emptyMetric(),4:emptyMetric(),all:emptyMetric()}; }
 function addLevel(metrics, level, completed){
@@ -17085,9 +17778,10 @@ function inCountries(row, countries){
   return !countries.length || countries.indexOf(row.country)!==-1;
 }
 function countryLabel(countries){
-  if(!countries.length) return "全部国家";
+  if(!countries.length) return t("allCountries");
+  const sep = isEn() ? ", " : "、";
   return COUNTRY_OPTIONS.filter(x=>x.value!=="all" && countries.indexOf(x.value)!==-1)
-    .map(x=>x.label).join("、");
+    .map(x=>displayCountryShort(x.value)).join(sep);
 }
 function inAge(row, ageFilter, exclude13){
   if(exclude13 && AGE_13_PLUS.has(row.age)) return false;
@@ -17139,8 +17833,9 @@ function inTiers(row, tiers){
   return !tiers.length || tiers.indexOf(row.tier||"未知")!==-1;
 }
 function tierLabel(tiers){
-  if(!tiers.length) return "全部档位";
-  return TIER_OPTIONS.filter(x=>x.value!=="all" && tiers.indexOf(x.value)!==-1).map(x=>x.label).join("、");
+  if(!tiers.length) return t("allTiers");
+  const sep = isEn() ? ", " : "、";
+  return TIER_OPTIONS.filter(x=>x.value!=="all" && tiers.indexOf(x.value)!==-1).map(x=>displayTier(x.value)).join(sep);
 }
 function inFilters(row, countries, ageFilter, abilityFilter, exclude13, tiers){
   const picked = tiers===undefined ? state.tiers : tiers;
@@ -17410,11 +18105,11 @@ function funnelBars(steps){
     <div class="funnel-row funnel-head">
       <div class="funnel-label"></div>
       <div class="funnel-track"></div>
-      <div class="funnel-n">触达</div>
-      <div class="funnel-t">平均耗时</div>
+      <div class="funnel-n">${t("reach")}</div>
+      <div class="funnel-t">${t("avgMin")}</div>
     </div>` + steps.map(step=>`
     <div class="funnel-row">
-      <div class="funnel-label">${esc(step.label)}</div>
+      <div class="funnel-label">${esc(displayFunnel(step.label))}</div>
       <div class="funnel-track"><div class="funnel-fill" style="width:${step.rate}%"></div></div>
       <div class="funnel-n">${step.rate.toFixed(1)}% · ${step.reached}/${step.denom}</div>
       <div class="funnel-t">${step.avgMin==null ? "—" : step.avgMin.toFixed(1)+" min"}</div>
@@ -17451,6 +18146,10 @@ const state = {
   tierOpen: false,
   section: "sec-rate",
   board: "course",
+  lang: (function(){
+    try { return localStorage.getItem("trial-board-lang")==="en" ? "en" : "zh"; }
+    catch(e){ return "zh"; }
+  })(),
 };
 
 function applyPreset(value){
@@ -17471,49 +18170,72 @@ function renderControls(){
   const isTrialHw = state.board==="homework";
   const isFormalHw = state.board==="formal_hw";
   const isHw = isTrialHw || isFormalHw;
+  document.documentElement.lang = isEn() ? "en" : "zh-CN";
   const titles = {
-    course: "体验课完课率看板",
-    homework: "体验课课后练习完成情况",
-    formal_hw: "正式课课后练习完成情况",
+    course: t("titleCourse"),
+    homework: t("titleHomework"),
+    formal_hw: t("titleFormalHw"),
   };
   document.title = titles[state.board] || titles.course;
   document.getElementById("board-title").textContent = titles[state.board] || titles.course;
-  document.getElementById("board-desc").innerHTML = isFormalHw
-    ? "这一页只看 L1–L4 正式课完课和对应课后练习，不含体验课 <code>732 / 1615 / 734 / 733</code>，也不含 <code>1661 / 1616</code>。开课是窗口内任意一次 <code>class_stage_start</code>；课程完课看 <code>class_lesson_end + result=complete</code>。课后练习不并进完课率。一课通常有词句 / 口语 / 听力三练。练习挂到同一用户、同一课的课堂。1.8.0 于 2026-09-21 上线，可练分母只计入当天 00:00 UTC 及之后完课的课堂。"
-    : isTrialHw
-    ? "这一页单独看 L1–L4 体验课完课，以及对应课后练习。课后练习不并进上一页的完课率。开课仍是窗口内任意一次 <code>class_stage_start</code>；课程完课看 <code>trigger + type=trial + result=complete</code>。一课通常有词句 / 口语 / 听力三练，分别统计完成率。练习挂到同一用户、同一课的课堂。1.8.0 于 2026-09-21 上线，可练分母只计入当天 00:00 UTC 及之后完课的课堂。"
-    : "L1–L4 完课率、马来/越南/韩国/沙特对照，以及 L1–L4 的 V1 / V2 版本对比合在同一页。窗口内任意一次 <code>class_stage_start</code> 都算开课，完课看 <code>trigger + type=trial + result=complete</code>，分母是独立 <code>class_id</code>。改 UTC 时间窗后，下面所有数字一起重算。";
+  document.getElementById("board-desc").innerHTML = isFormalHw ? t("descFormal") : isTrialHw ? t("descHomework") : t("descCourse");
   const coverEnd = currentCoverageEnd();
-  document.getElementById("board-coverage").textContent = isHw
-    ? `数据覆盖 2026-08-01 00:00:00 至 ${coverEnd} UTC。课后练习自 2026-09-21 起统计。窗口结束后才上报的完课或练习完成，不计入该窗口。`
-    : `数据覆盖 2026-08-01 00:00:00 至 2026-10-08 10:14:41 UTC。窗口结束后才上报的完课，不计入该窗口。`;
+  document.getElementById("board-coverage").innerHTML = isHw
+    ? t("coverHw", {start:"2026-08-01 00:00:00", end:coverEnd})
+    : t("coverCourse", {start:"2026-08-01 00:00:00", end:"2026-10-08 10:14:41"});
+  document.getElementById("board-how").innerHTML = t("how");
+  document.getElementById("filter-title").textContent = t("filter");
+  document.getElementById("filter-utc-note").textContent = t("filterUtc");
+  document.getElementById("lbl-preset").textContent = t("preset");
+  document.getElementById("lbl-country").textContent = t("countryMulti");
+  document.getElementById("lbl-tier").textContent = t("tierMulti");
+  document.getElementById("lbl-age").textContent = t("age");
+  document.getElementById("lbl-ability").textContent = t("ability");
+  document.getElementById("lbl-exclude13").textContent = t("exclude13");
+  document.getElementById("lbl-start-date").textContent = t("startDate");
+  document.getElementById("lbl-start-time").textContent = t("startTime");
+  document.getElementById("lbl-end-date").textContent = t("endDate");
+  document.getElementById("lbl-end-time").textContent = t("endTime");
+  document.querySelectorAll("#lang-switch .lang-opt").forEach(el=>{
+    el.classList.toggle("active", el.dataset.lang===state.lang);
+  });
+  const tabLabels = {course:t("tabCourse"), homework:t("tabHomework"), formal_hw:t("tabFormalHw")};
   document.querySelectorAll("#board-tabs [data-board]").forEach(btn=>{
     btn.classList.toggle("active", btn.dataset.board===state.board);
+    if(tabLabels[btn.dataset.board]) btn.textContent = tabLabels[btn.dataset.board];
   });
   const levels = currentLevels();
   document.getElementById("level-pills").innerHTML =
-    `<button class="pill ${state.levelTab==="all"?"active":""}" data-level="all">全部 Level</button>` +
-    levels.map(l=>`<button class="pill ${state.levelTab===String(l.level)?"active":""}" data-level="${l.level}">${l.label} ${l.name}</button>`).join("");
+    `<button class="pill ${state.levelTab==="all"?"active":""}" data-level="all">${t("allLevels")}</button>` +
+    levels.map(l=>`<button class="pill ${state.levelTab===String(l.level)?"active":""}" data-level="${l.level}">${l.label} ${esc(displayLessonName(l.name))}</button>`).join("");
   const presetSel = document.getElementById("preset");
-  presetSel.innerHTML = PRESETS.map(p=>`<option value="${p.value}" ${p.value===state.preset?"selected":""}>${esc(p.label)}</option>`).join("");
+  presetSel.innerHTML = PRESETS.map(p=>`<option value="${p.value}" ${p.value===state.preset?"selected":""}>${esc(presetLabelOf(p))}</option>`).join("");
   const allCountries = state.countries.length===0;
   document.getElementById("country-msel").classList.toggle("open", state.countryOpen);
   document.getElementById("country-msel-btn").textContent = countryLabel(state.countries);
   document.getElementById("country-msel-panel").innerHTML = COUNTRY_OPTIONS.map(s=>{
     const checked = s.value==="all" ? allCountries : state.countries.indexOf(s.value)!==-1;
-    return `<label data-country="${s.value}"><input type="checkbox" data-country="${s.value}" ${checked?"checked":""}>${esc(s.label)}</label>`;
+    const label = s.value==="all" ? t("allCountries") : displayCountryShort(s.value);
+    return `<label data-country="${s.value}"><input type="checkbox" data-country="${s.value}" ${checked?"checked":""}>${esc(label)}</label>`;
   }).join("");
   const allTiers = state.tiers.length===0;
   document.getElementById("tier-msel").classList.toggle("open", state.tierOpen);
   document.getElementById("tier-msel-btn").textContent = tierLabel(state.tiers);
   document.getElementById("tier-msel-panel").innerHTML = TIER_OPTIONS.map(s=>{
     const checked = s.value==="all" ? allTiers : state.tiers.indexOf(s.value)!==-1;
-    return `<label data-tier="${s.value}"><input type="checkbox" data-tier="${s.value}" ${checked?"checked":""}>${esc(s.label)}</label>`;
+    const label = s.value==="all" ? t("allTiers") : displayTier(s.value);
+    return `<label data-tier="${s.value}"><input type="checkbox" data-tier="${s.value}" ${checked?"checked":""}>${esc(label)}</label>`;
   }).join("");
   const ageSel = document.getElementById("age");
-  ageSel.innerHTML = AGE_FILTERS.map(s=>`<option value="${s.value}" ${s.value===state.age?"selected":""}>${esc(s.label)}</option>`).join("");
+  ageSel.innerHTML = AGE_FILTERS.map(s=>{
+    const label = s.value==="all" ? t("allAges") : s.value==="unknown" ? t("unknownAge") : s.label;
+    return `<option value="${s.value}" ${s.value===state.age?"selected":""}>${esc(label)}</option>`;
+  }).join("");
   const abilitySel = document.getElementById("ability");
-  abilitySel.innerHTML = ABILITY_FILTERS.map(s=>`<option value="${s.value}" ${s.value===state.ability?"selected":""}>${esc(s.label)}</option>`).join("");
+  abilitySel.innerHTML = ABILITY_FILTERS.map(s=>{
+    const label = s.value==="all" ? t("allAbility") : s.value==="unknown" ? t("unknownAbility") : s.label;
+    return `<option value="${s.value}" ${s.value===state.ability?"selected":""}>${esc(label)}</option>`;
+  }).join("");
   document.getElementById("exclude13").checked = state.exclude13;
   const minDate = DATA_START.split(" ")[0];
   const maxDate = DATA_END.split(" ")[0];
@@ -17528,17 +18250,18 @@ function renderControls(){
   endDateEl.value = state.endDate;
   document.getElementById("endTime").value = state.endTime;
   document.getElementById("preset-pills").innerHTML = [
-    ["current","9/14 00:00 – 最新"],
-    ["since180","自1.8.0上线"],
-    ["last7full","近7个完整UTC日"],
-    ["prevWeek","上一UTC周"],
-    ["august","2026年8月"],
-    ["all","8/01至今"],
+    ["current", t("presetCurrent")],
+    ["since180", t("presetSince180Short")],
+    ["last7full", t("presetLast7")],
+    ["prevWeek", isEn() ? t("presetPrevWeek", {range:""}).replace(/\s+$/,"") : "上一UTC周"],
+    ["august", t("presetAugust")],
+    ["all", t("presetAllShort")],
   ].map(([v,l])=>`<button class="pill ${state.preset===v?"active":""}" data-preset="${v}">${l}</button>`).join("");
 }
 
 function isCoreAgeLabel(label){
-  return CORE_AGE_YEARS.has(label) || label==="6–8";
+  const raw = String(label||"").replace(/^Age /i,"").replace(/ 岁$/,"");
+  return CORE_AGE_YEARS.has(raw) || raw==="6–8" || label==="6–8";
 }
 function barChart(categories, values, markCore){
   const max = 100;
@@ -17551,12 +18274,10 @@ function barChart(categories, values, markCore){
 }
 
 function osLabel(code){
-  if(code==="iOS") return "iOS";
-  if(code==="Android") return "Android";
-  return "其他";
+  return displayOs(code);
 }
 function countryShort(name){
-  return ({马来西亚:"马来",越南:"越南",韩国:"韩国",沙特阿拉伯:"沙特",日本:"日本",泰国:"泰国",印度尼西亚:"印尼"}[name]) || name || "未知";
+  return displayCountryShort(name);
 }
 function countBy(rows, keyFn){
   const map = new Map();
@@ -17583,12 +18304,13 @@ function versionShareChart(v1rows, v2rows, keyFn, preferred, maxCats){
     const rest = keys.slice(maxCats);
     other1 = rest.reduce((n,k)=>n+(c1.get(k)||0),0);
     other2 = rest.reduce((n,k)=>n+(c2.get(k)||0),0);
-    cats = (other1||other2) ? keep.concat(["其他"]) : keep;
+    cats = (other1||other2) ? keep.concat([t("other")]) : keep;
   }
   const n1 = v1rows.length, n2 = v2rows.length;
-  const data1 = cats.map(k=> Number(((k==="其他" ? other1 : (c1.get(k)||0)) / (n1||1) * 100).toFixed(1)));
-  const data2 = cats.map(k=> Number(((k==="其他" ? other2 : (c2.get(k)||0)) / (n2||1) * 100).toFixed(1)));
-  if(!cats.length) return `<p class="tiny">当前筛选下没有画像可对比。</p>`;
+  const otherKey = t("other");
+  const data1 = cats.map(k=> Number(((k===otherKey ? other1 : (c1.get(k)||0)) / (n1||1) * 100).toFixed(1)));
+  const data2 = cats.map(k=> Number(((k===otherKey ? other2 : (c2.get(k)||0)) / (n2||1) * 100).toFixed(1)));
+  if(!cats.length) return `<p class="tiny">${t("noProfile")}</p>`;
   return groupBarChart(cats, [
     {name:"V1", color:"#4a7cff", data:data1},
     {name:"V2", color:"#e6a23c", data:data2},
@@ -17631,14 +18353,15 @@ function signedPp(value){
   return (n>0?"+":"")+n.toFixed(1)+"pp";
 }
 function countryShortName(name){
-  const option = COUNTRY_OPTIONS.find(x=>x.value===name);
-  if(option) return option.label;
-  const known = PROFILE_COUNTRIES.find(x=>x.name===name) || FOCUS_COUNTRIES.find(x=>x.name===name);
-  return known ? known.short : name;
+  return displayCountryShort(name);
 }
 function joinCn(parts){
   if(!parts.length) return "";
   if(parts.length===1) return parts[0];
+  if(isEn()){
+    if(parts.length===2) return parts[0]+" and "+parts[1];
+    return parts.slice(0,-1).join(", ")+", and "+parts[parts.length-1];
+  }
   if(parts.length===2) return parts[0]+"，"+parts[1];
   return parts.slice(0,-1).join("、")+"，以及"+parts[parts.length-1];
 }
@@ -17696,34 +18419,30 @@ function countryBucket(name){
 function focusCountrySentence(item, levelNow){
   const name = countryShortName(item.key);
   if(!item.now.started){
-    return item.prev.started>=5 ? `${name}本期没有开课（上期 ${countText(item.prev)}）` : "";
+    return item.prev.started>=5 ? t("focusNoStart", {name, prev: countText(item.prev)}) : "";
   }
-  const bits = [`${name} ${fmtRateSafe(item.nowRate)} · ${countText(item.now)}，占开课 ${item.nowShare.toFixed(1)}%`];
+  const bits = [t("focusLine", {name, rate: fmtRateSafe(item.nowRate), count: countText(item.now), share: item.nowShare.toFixed(1)})];
   if(item.prev.started>=5 && item.prevRate!==null && item.nowRate!==null){
-    bits.push(`上期 ${item.prevRate.toFixed(1)}%（${signedPp(item.nowRate-item.prevRate)}）`);
+    bits.push(t("prevBit", {rate: item.prevRate.toFixed(1), delta: signedPp(item.nowRate-item.prevRate)}));
     if(Math.abs(item.nowShare-item.prevShare)>=4){
-      bits.push(`占比 ${item.prevShare.toFixed(1)}%→${item.nowShare.toFixed(1)}%（${signedPp(item.nowShare-item.prevShare)}）`);
+      bits.push(t("shareBit", {from: item.prevShare.toFixed(1), to: item.nowShare.toFixed(1), delta: signedPp(item.nowShare-item.prevShare)}));
     }
   }
   if(item.nowRate!==null && levelNow!==null && Math.abs(item.nowRate-levelNow)>=3){
     const gap = Math.abs(item.nowRate-levelNow).toFixed(1);
-    if(item.nowRate<levelNow){
-      bits.push(`低于本级别 ${gap}pp`);
-    } else {
-      bits.push(`高于本级别 ${gap}pp`);
-    }
+    bits.push(item.nowRate<levelNow ? t("belowLevel", {gap}) : t("aboveLevel", {gap}));
   }
-  return bits.join("，");
+  return bits.join(isEn() ? "; " : "，");
 }
 function dragLine(name, now, prev, nowShare, levelNow){
   const nowRate = rate(now);
   if(now.started<8 || nowRate===null || levelNow===null || nowRate>=levelNow) return "";
   const drag = dragAgainst(nowRate, levelNow, nowShare);
   if(drag<0.4) return "";
-  const label = name==="其他" ? "其他国家" : countryShortName(name);
-  let text = `${label} ${nowRate.toFixed(1)}% · ${countText(now)}，占开课 ${nowShare.toFixed(1)}%，把整体往下拉 ${drag.toFixed(1)}pp`;
+  const label = name==="其他" ? t("otherCountries") : countryShortName(name);
+  let text = t("dragLine", {label, rate: nowRate.toFixed(1), count: countText(now), share: nowShare.toFixed(1), drag: drag.toFixed(1)});
   const prevRate = rate(prev);
-  if(prev.started>=5 && prevRate!==null) text += `，上期 ${prevRate.toFixed(1)}%（${signedPp(nowRate-prevRate)}）`;
+  if(prev.started>=5 && prevRate!==null) text += (isEn() ? "; " : "，") + t("prevBit", {rate: prevRate.toFixed(1), delta: signedPp(nowRate-prevRate)});
   return text;
 }
 function countryAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd){
@@ -17773,9 +18492,9 @@ function countryAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
     if(line) dragLines.push(line);
   }
   const parts = [];
-  parts.push(focusLines.length ? "马来、越南、韩国、沙特、日本："+focusLines.join("；") : "马来、越南、韩国、沙特、日本在这个窗口几乎没有开课");
-  if(dragLines.length) parts.push("泰国、印尼或其他国家里，把整体往下拉的是"+joinCn(dragLines));
-  return parts.join("。")+"。";
+  parts.push(focusLines.length ? t("focusLead", {lines: focusLines.join(isEn() ? "; " : "；")}) : t("focusEmpty"));
+  if(dragLines.length) parts.push(t("watchLead", {lines: joinCn(dragLines)}));
+  return parts.join(isEn() ? " " : "。")+(isEn() ? "" : "。");
 }
 function abilityShifts(nowRows, prevRows, rangeEnd, prevEnd){
   const keys = new Set();
@@ -17800,8 +18519,8 @@ function abilityShifts(nowRows, prevRows, rangeEnd, prevEnd){
   return out;
 }
 function abilityShiftText(item){
-  let text = `${item.key} 占比 ${item.prevShare.toFixed(1)}%→${item.nowShare.toFixed(1)}%（${signedPp(item.shareDelta)}）`;
-  if(item.nowRate!==null) text += `，完课率 ${item.nowRate.toFixed(1)}%`;
+  let text = t("abilityShift", {key: displayAbilityName(item.key), from: item.prevShare.toFixed(1), to: item.nowShare.toFixed(1), delta: signedPp(item.shareDelta)});
+  if(item.nowRate!==null) text += t("abilityRate", {rate: item.nowRate.toFixed(1)});
   if(item.prevRate!==null && item.nowRate!==null) text += `（${signedPp(item.rateDelta)}）`;
   return text;
 }
@@ -17820,20 +18539,20 @@ function profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
   const restRate = rate(restNow);
   if(state.age==="all"){
     if(!coreNow.started){
-      parts.push("本期没有识别到 5–8 岁核心用户");
+      parts.push(t("noCore"));
     } else {
-      let sentence = `核心用户是 5–8 岁，占开课 ${coreShareNow.toFixed(1)}%（${countText(coreNow)}），完课率 ${fmtRateSafe(coreRate)}`;
+      let sentence = t("coreLead", {share: coreShareNow.toFixed(1), count: countText(coreNow), rate: fmtRateSafe(coreRate)});
       if(corePrev.started>=5 && coreRate!==null && corePrevRate!==null){
         const shareDelta = Number((coreShareNow-coreSharePrev).toFixed(1));
         const rateDelta = Number((coreRate-corePrevRate).toFixed(1));
-        sentence += `。相对上期，占比 ${coreSharePrev.toFixed(1)}%→${coreShareNow.toFixed(1)}%（${signedPp(shareDelta)}），完课率 ${corePrevRate.toFixed(1)}%→${coreRate.toFixed(1)}%（${signedPp(rateDelta)}）`;
-        if(Math.abs(shareDelta)<3 && Math.abs(rateDelta)<3) sentence += "，5–8 岁的占比和完课率变化不大";
+        sentence += t("coreVsPrev", {from: coreSharePrev.toFixed(1), to: coreShareNow.toFixed(1), delta: signedPp(shareDelta), fromR: corePrevRate.toFixed(1), toR: coreRate.toFixed(1), rateDelta: signedPp(rateDelta)});
+        if(Math.abs(shareDelta)<3 && Math.abs(rateDelta)<3) sentence += t("coreStable");
       }
       if(restNow.started>=8 && restRate!==null && levelNow!==null && restRate<levelNow){
         const restShare = shareOf(restNow.started, currMetric.started);
         const drag = dragAgainst(restRate, levelNow, restShare);
         if(drag>=0.4){
-          sentence += `。5–8 岁以外完课率 ${restRate.toFixed(1)}%（${countText(restNow)}，占 ${restShare.toFixed(1)}%），把整体往下拉 ${drag.toFixed(1)}pp`;
+          sentence += t("restDrag", {rate: restRate.toFixed(1), count: countText(restNow), share: restShare.toFixed(1), drag: drag.toFixed(1)});
         }
       }
       parts.push(sentence);
@@ -17847,10 +18566,10 @@ function profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
         };
       }).filter(item=>Math.abs(item.nowShare-item.prevShare)>=5 && item.now.started>=5);
       if(yearShift.length && coreNow.started>=20){
-        parts.push("5–8 岁内部，"+joinCn(yearShift.slice(0,3).map(item=>{
+        parts.push(t("coreInner", {lines: joinCn(yearShift.slice(0,3).map(item=>{
           const nowRate = rate(item.now);
-          return `${item.year} 岁占比 ${item.prevShare.toFixed(1)}%→${item.nowShare.toFixed(1)}%（${signedPp(item.nowShare-item.prevShare)}）${nowRate===null?"":"，完课率 "+nowRate.toFixed(1)+"%"}`;
-        })));
+          return t("yearShare", {year: item.year, from: item.prevShare.toFixed(1), to: item.nowShare.toFixed(1), delta: signedPp(item.nowShare-item.prevShare)}) + (nowRate===null ? "" : t("yearRate", {rate: nowRate.toFixed(1)}));
+        }))}));
       }
     }
   }
@@ -17863,15 +18582,15 @@ function profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
     const coreKnownPrev = corePrevRows.filter(r=>r.ability);
     const coreCov = shareOf(coreKnownNow.length, coreNow.started);
     if(Math.abs(covNow-covPrev)>=10){
-      parts.push(`英文能力回填比例 ${covPrev.toFixed(1)}%→${covNow.toFixed(1)}%，未回填不能当成能力变化`);
+      parts.push(t("abilityFillShift", {from: covPrev.toFixed(1), to: covNow.toFixed(1)}));
     }
     if(covNow<30 && coreCov<30){
-      parts.push(`英文能力回填不足（本期 ${covNow.toFixed(1)}%，5–8 岁 ${coreCov.toFixed(1)}%），不能拿能力结构解释完课率`);
+      parts.push(t("abilityFillLow", {now: covNow.toFixed(1), core: coreCov.toFixed(1)}));
     } else {
       const useCore = coreCov>=30;
       const shifts = abilityShifts(useCore?coreKnownNow:knownNow, useCore?coreKnownPrev:knownPrev, rangeEnd, prevEnd);
-      const scope = useCore ? "5–8 岁里已填写英文能力的用户" : "已填写英文能力的用户";
-      parts.push(shifts.length ? scope+"里，"+joinCn(shifts.slice(0,3).map(abilityShiftText)) : scope+"里，能力结构和完课率相对上期变化不大");
+      const scope = useCore ? t("abilityScopeCore") : t("abilityScopeAll");
+      parts.push(shifts.length ? t("abilityChanged", {scope, lines: joinCn(shifts.slice(0,3).map(abilityShiftText))}) : t("abilityStable", {scope}));
     }
   }
   const crosses = [];
@@ -17883,16 +18602,16 @@ function profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
     crosses.push({name, now, prev, countryRate: rate(countryNow), nowRate: rate(now), prevRate: rate(prev)});
   }
   if(crosses.length){
-    parts.push("四国 × 5–8 岁："+crosses.map(item=>{
+    parts.push(t("crossLead", {lines: crosses.map(item=>{
       let text = `${countryShortName(item.name)} ${fmtRateSafe(item.nowRate)} · ${countText(item.now)}`;
       if(item.countryRate!==null && item.nowRate!==null && Math.abs(item.nowRate-item.countryRate)>=3){
-        text += item.nowRate<item.countryRate ? "，低于该国整体" : "，高于该国整体";
+        text += item.nowRate<item.countryRate ? t("belowCountry") : t("aboveCountry");
       }
       if(item.prev.started>=5 && item.prevRate!==null && item.nowRate!==null){
-        text += `，上期 ${item.prevRate.toFixed(1)}%（${signedPp(item.nowRate-item.prevRate)}）`;
+        text += (isEn() ? "; " : "，") + t("prevBit", {rate: item.prevRate.toFixed(1), delta: signedPp(item.nowRate-item.prevRate)});
       }
       return text;
-    }).join("；"));
+    }).join(isEn() ? "; " : "；")}));
   }
   const watchCore = [];
   for(const name of ["泰国","印度尼西亚","其他"]){
@@ -17901,8 +18620,8 @@ function profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
     const nowShare = shareOf(now.started, currMetric.started);
     const drag = dragAgainst(nowRate, levelNow, nowShare);
     if(now.started>=8 && drag>=0.4){
-      const label = name==="其他" ? "其他国家" : countryShortName(name);
-      watchCore.push(`${label}的 5–8 岁 ${nowRate.toFixed(1)}%（${countText(now)}），把整体往下拉 ${drag.toFixed(1)}pp`);
+      const label = name==="其他" ? t("otherCountries") : countryShortName(name);
+      watchCore.push(t("watchCore", {label, rate: nowRate.toFixed(1), count: countText(now), drag: drag.toFixed(1)}));
     }
   }
   if(watchCore.length) parts.push(joinCn(watchCore));
@@ -17931,25 +18650,25 @@ function profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
     }
     abilityCross.sort((a,b)=>a.nowRate-b.nowRate);
     if(abilityCross.length){
-      parts.push("国家 × 英文能力："+joinCn(abilityCross.slice(0,3).map(item=>{
-        let text = `${countryShortName(item.name)} × ${item.ability} ${item.nowRate.toFixed(1)}%（${countText(item.now)}，占该国已填能力 ${item.shareNow.toFixed(1)}%）`;
-        if(item.prevStarted>=5 && item.prevRate!==null) text += `，上期 ${item.prevRate.toFixed(1)}%（${signedPp(item.nowRate-item.prevRate)}）`;
-        if(item.prevStarted>=5 && Math.abs(item.shareDelta)>=8) text += `，占比 ${signedPp(item.shareDelta)}`;
+      parts.push(t("abilityCrossLead", {lines: joinCn(abilityCross.slice(0,3).map(item=>{
+        let text = t("abilityCrossItem", {name: countryShortName(item.name), ability: displayAbilityName(item.ability), rate: item.nowRate.toFixed(1), count: countText(item.now), share: item.shareNow.toFixed(1)});
+        if(item.prevStarted>=5 && item.prevRate!==null) text += (isEn() ? "; " : "，") + t("prevBit", {rate: item.prevRate.toFixed(1), delta: signedPp(item.nowRate-item.prevRate)});
+        if(item.prevStarted>=5 && Math.abs(item.shareDelta)>=8) text += t("shareDelta", {delta: signedPp(item.shareDelta)});
         return text;
-      })));
+      }))}));
     }
   }
-  if(!parts.length) return "当前筛选已经固定了年龄或英文能力，这里不再重复拆画像结构。";
-  return parts.join("。")+"。";
+  if(!parts.length) return t("profileFixed");
+  return parts.join(isEn() ? " " : "。")+(isEn() ? "" : "。");
 }
 const TARGET_RATE = 50;
 function gapToTargetText(level, currRows, currMetric, rangeEnd){
   if(level!==3 && level!==4) return "";
   const currR = rate(currMetric);
   if(currR===null) return "";
-  if(currMetric.started<15) return `本期开课只有 ${currMetric.started} 节，距 50% 的缺口还不稳定。`;
+  if(currMetric.started<15) return t("gapSmall", {n: currMetric.started});
   const gap = Number((TARGET_RATE-currR).toFixed(1));
-  if(gap<=0) return `已经达到或超过 50%（${currR.toFixed(1)}%）。`;
+  if(gap<=0) return t("gapDone", {rate: currR.toFixed(1)});
   const holes = [];
   function consider(label, rows){
     const metric = rowsMetric(rows, rangeEnd);
@@ -17962,22 +18681,22 @@ function gapToTargetText(level, currRows, currMetric, rangeEnd){
   }
   for(const name of ANALYSIS_FOCUS) consider(countryShortName(name), currRows.filter(r=>r.country===name));
   for(const name of ANALYSIS_WATCH) consider(countryShortName(name), currRows.filter(r=>r.country===name));
-  consider("其他国家", currRows.filter(r=>countryBucket(r.country||"未知")==="其他"));
-  consider("5–8 岁", currRows.filter(isCoreAge));
-  consider("5–8 岁以外", currRows.filter(r=>!isCoreAge(r)));
+  consider(t("otherCountries"), currRows.filter(r=>countryBucket(r.country||"未知")==="其他"));
+  consider(t("coreAge"), currRows.filter(isCoreAge));
+  consider(t("nonCoreAge"), currRows.filter(r=>!isCoreAge(r)));
   for(const name of ANALYSIS_FOCUS){
-    consider(countryShortName(name)+" × 5–8 岁", currRows.filter(r=>r.country===name && isCoreAge(r)));
+    consider(t("coreCross", {name: countryShortName(name)}), currRows.filter(r=>r.country===name && isCoreAge(r)));
   }
   holes.sort((a,b)=>b.pull-a.pull);
   const top = holes.slice(0,3);
-  let text = `目标 50%，本期 ${currR.toFixed(1)}%，还差 ${gap.toFixed(1)}pp`;
+  let text = t("gapLead", {rate: currR.toFixed(1), gap: gap.toFixed(1)});
   if(top.length){
-    text += "。相对 50% 拉动更大的是"+joinCn(top.map(item=>
-      `${item.label} ${item.nowRate.toFixed(1)}%（${countText(item.metric)}，占开课 ${item.nowShare.toFixed(1)}%，拉动 ${item.pull.toFixed(1)}pp）`
-    ));
+    text += t("gapPull", {lines: joinCn(top.map(item=>
+      t("gapItem", {label: item.label, rate: item.nowRate.toFixed(1), count: countText(item.metric), share: item.nowShare.toFixed(1), pull: item.pull.toFixed(1)})
+    ))});
   }
-  text += "。要提到 50%，先看这些低完课率、高开课占比叠加的人群课中体验，而不是先改分班";
-  return text+"。";
+  text += t("gapAdvice");
+  return text+(isEn() ? "" : "。");
 }
 function analyzeLevel(levelInfo, currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd){
   const currR = rate(currMetric);
@@ -17985,16 +18704,16 @@ function analyzeLevel(levelInfo, currRows, prevRows, currMetric, prevMetric, ran
   const delta = currR!==null && prevR!==null ? Number((currR-prevR).toFixed(1)) : null;
   const title = `${levelInfo.label} ${levelInfo.name} · ${rateText(currMetric)}（${countText(currMetric)}）`;
   const prevCmp = prevR===null
-    ? "上期无对照"
-    : `上期 ${rateText(prevMetric)}，<span class="${delta>0?"up":delta<0?"down":""}">${signedPp(delta)}</span>`;
+    ? t("prevNone")
+    : `${t("prevRate", {rate: rateText(prevMetric)})}<span class="${delta>0?"up":delta<0?"down":""}">${signedPp(delta)}</span>`;
   if(!currMetric.started){
-    return {title, prevCmp, country:"本期没有开课。", profile:"", gap:""};
+    return {title, prevCmp, country:t("noStartPeriod"), profile:"", gap:""};
   }
   const noPrev = !prevMetric.started;
   return {
     title,
     prevCmp,
-    country: (noPrev ? "上期该级别没有对照课堂。" : "")+countryAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd),
+    country: (noPrev ? t("noPrevLevel") : "")+countryAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd),
     profile: profileAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEnd, prevEnd),
     gap: gapToTargetText(levelInfo.level, currRows, currMetric, rangeEnd),
   };
@@ -18046,7 +18765,7 @@ function renderHomeworkView(ctx){
 
   if(!["all","ws","sp","li"].includes(state.hwFunnelTab)) state.hwFunnelTab = "all";
   const hwFunnelTabs = [
-    ["all","整体"],
+    ["all", t("hwOverall")],
     ["ws","word & sentences"],
     ["sp","speaking"],
     ["li","listening"],
@@ -18056,15 +18775,15 @@ function renderHomeworkView(ctx){
   let funnelNote;
   if(state.hwFunnelTab==="all"){
     funnel = [
-      ["开课", totals.started],
-      ["完课", totals.completed],
-      ["可练完课（9/21及之后完课）", totals.eligible],
-      ["点击课后练习", totals.hwClick],
-      ["开始课后练习（任一）", totals.hwStart],
-      ["完成任一课后练习", totals.hwDone],
+      [t("funnelStart"), totals.started],
+      [t("funnelComplete"), totals.completed],
+      [t("funnelEligible"), totals.eligible],
+      [t("funnelClick"), totals.hwClick],
+      [t("funnelHwStart"), totals.hwStart],
+      [t("funnelHwAny"), totals.hwDone],
     ];
     funnelBase = totals.started;
-    funnelNote = "柱宽按开课量。右侧「上步」是相对前一步的转化。完成任一课后练习=任意一个练习 end result=complete，三类完成不再并排占步。点击练习不是必经埋点。";
+    funnelNote = t("funnelNoteAll");
   } else {
     const spec = {
       ws: ["word & sentences", totals.wsOpen, totals.ws],
@@ -18073,18 +18792,18 @@ function renderHomeworkView(ctx){
     }[state.hwFunnelTab];
     const [name, opened, done] = spec;
     funnel = [
-      ["开始了 "+name, opened],
-      ["完成了 "+name, done],
+      [t("funnelStartedX", {name}), opened],
+      [t("funnelFinishedX", {name}), done],
     ];
     funnelBase = opened;
-    funnelNote = "只看该练：开始了 → 完成了。开始了=开启该练任务（点过该练卡片，或该练已开始/已完成）。完成了=该练完成。柱宽按开始了该练的任务数。";
+    funnelNote = t("funnelNoteType");
   }
   const funnelMax = funnelBase || 1;
   const funnelHtml = `<div class="funnel">
     <div class="funnel-row funnel-head">
       <div class="funnel-label"></div>
       <div class="funnel-track"></div>
-      <div class="funnel-n">触达</div>
+      <div class="funnel-n">${t("reach")}</div>
       <div class="funnel-t"></div>
     </div>` + funnel.map((item, i)=>{
       const [label, n] = item;
@@ -18094,14 +18813,14 @@ function renderHomeworkView(ctx){
       return `<div class="funnel-row">
         <div class="funnel-label">${esc(label)}</div>
         <div class="funnel-track"><div class="funnel-fill" style="width:${(n/funnelMax)*100}%"></div></div>
-        <div class="funnel-n">${rateVsOpen} · ${n}/${funnelBase}${i?` · 上步${conv}`:""}</div>
+        <div class="funnel-n">${rateVsOpen} · ${n}/${funnelBase}${i?` · ${t("fromPrev", {rate: conv})}`:""}</div>
         <div class="funnel-t"></div>
       </div>`;
     }).join("") + `</div>`;
 
   let lead = "";
-  if(!windowValid) lead += `<div class="callout warn"><b>时间格式无效</b>　请使用 UTC 日期 YYYY-MM-DD 和时间 HH:MM:SS，且开始不晚于结束。下方暂时回退到 9/14 00:00:00 – 最新。</div>`;
-  lead += `<div class="callout info"><b>口径</b>　${isFormal?"正式课完课看 <code>class_lesson_end + result=complete</code>，不含 732 / 1615 / 734 / 733 / 1661 / 1616。":"课程完课率与上一页相同，完课看 <code>trigger + type=trial + result=complete</code>。"}不把练习算进完课。<b>可练完课</b>=完课时间 ≥ 2026-09-21 00:00 UTC 且 ≤ 窗口结束（1.8.0 才有课后练习）。完课且 ≥9/21 的课堂，每课解锁词句 / 口语 / 听力各 1 个任务。<b>进入 word & sentences / speaking / listening 的占比</b>=开启该练的任务数 / 解锁了的该练任务数。开启=点过该练卡片（<code>afterclass_practice_click</code>，<code>content_id</code> 为 <code>words_sentences</code> / <code>speaking</code> / <code>listening</code>），或该练已开始/已完成。<b>进入了任意一个课后练习的占比</b>=三类进入的并集 / 可练完课，一节课进了多个练习只计 1，因此一定不低于后面三个进入数。<code>afterclass_practice_start</code> 没有练习类型，不能拿它当「进入任意一个」，否则会低于点过卡片但还没 start 的三类进入。<b>课后练习完成率</b>=有 <code>afterclass_practice_start</code> 的课堂里，出现 <code>afterclass_practice_end</code> 且 <code>result=complete</code> 的比例，完成任意一个即可。某练完成=该类型有 <code>end result=complete</code>，或事后点到该卡片 <code>status=completed</code>，时间都要落在窗口结束前。<b>完成AI课+3个课后练习 / 开课</b>=课程完课并且三练都完成，占窗口开课。<b>完成AI课+3个课后练习 / 完课</b>=同样分子，分母改成窗口内完课。</div>`;
+  if(!windowValid) lead += `<div class="callout warn">${t("invalidTime")}</div>`;
+  lead += `<div class="callout info">${t("hwRule")}${isFormal?t("hwLeadFormal"):t("hwLeadTrial")}${t("hwLeadRest")}</div>`;
 
   const nav = [];
   const sectionOrder = [];
@@ -18112,36 +18831,36 @@ function renderHomeworkView(ctx){
     sections[id] = inner;
   };
 
-  addSec("sec-hw-rate", "课程与课后练习", `
-    <h2>课程与课后练习（${esc(segmentLabel)}）</h2>
+  addSec("sec-hw-rate", t("secHwRate"), `
+    <h2>${t("secHwRate")}（${esc(segmentLabel)}）</h2>
     <div class="grid g5">
-      <div class="stat info"><div class="k">${selectedLevel?`L${selectedLevel}`:"合计"}课程完课率 · ${totals.completed}/${totals.started}</div><div class="v">${hwRateText(totals.completed, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.completed},{started:prevTotals.started,completed:prevTotals.completed})}</div>
-      <div class="stat"><div class="k">进入了任意一个课后练习的占比 · ${totals.hwOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.hwOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.hwOpen},{started:prevTotals.eligible,completed:prevTotals.hwOpen})}</div>
-      <div class="stat"><div class="k">进入 word & sentences 的占比 · ${totals.wsOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.wsOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.wsOpen},{started:prevTotals.eligible,completed:prevTotals.wsOpen})}</div>
-      <div class="stat"><div class="k">进入 speaking 的占比 · ${totals.spOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.spOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.spOpen},{started:prevTotals.eligible,completed:prevTotals.spOpen})}</div>
-      <div class="stat"><div class="k">进入 listening 的占比 · ${totals.liOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.liOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.liOpen},{started:prevTotals.eligible,completed:prevTotals.liOpen})}</div>
+      <div class="stat info"><div class="k">${selectedLevel?`L${selectedLevel}`:t("total")}${t("courseCompletion")} · ${totals.completed}/${totals.started}</div><div class="v">${hwRateText(totals.completed, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.completed},{started:prevTotals.started,completed:prevTotals.completed})}</div>
+      <div class="stat"><div class="k">${t("hwOpenAny")} · ${totals.hwOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.hwOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.hwOpen},{started:prevTotals.eligible,completed:prevTotals.hwOpen})}</div>
+      <div class="stat"><div class="k">${t("hwEnterWs")} · ${totals.wsOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.wsOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.wsOpen},{started:prevTotals.eligible,completed:prevTotals.wsOpen})}</div>
+      <div class="stat"><div class="k">${t("hwEnterSp")} · ${totals.spOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.spOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.spOpen},{started:prevTotals.eligible,completed:prevTotals.spOpen})}</div>
+      <div class="stat"><div class="k">${t("hwEnterLi")} · ${totals.liOpen}/${totals.eligible}</div><div class="v">${hwRateText(totals.liOpen, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.liOpen},{started:prevTotals.eligible,completed:prevTotals.liOpen})}</div>
     </div>
     <div class="grid g3" style="margin-top:12px;grid-template-columns:1fr 1fr 1fr">
-      <div class="stat"><div class="k">word & sentences 完成率 · ${totals.ws}/${totals.eligible}</div><div class="v">${hwRateText(totals.ws, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.ws},{started:prevTotals.eligible,completed:prevTotals.ws})}</div>
-      <div class="stat"><div class="k">speaking 完成率 · ${totals.sp}/${totals.eligible}</div><div class="v">${hwRateText(totals.sp, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.sp},{started:prevTotals.eligible,completed:prevTotals.sp})}</div>
-      <div class="stat"><div class="k">listening 完成率 · ${totals.li}/${totals.eligible}</div><div class="v">${hwRateText(totals.li, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.li},{started:prevTotals.eligible,completed:prevTotals.li})}</div>
+      <div class="stat"><div class="k">${t("hwDoneWs")} · ${totals.ws}/${totals.eligible}</div><div class="v">${hwRateText(totals.ws, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.ws},{started:prevTotals.eligible,completed:prevTotals.ws})}</div>
+      <div class="stat"><div class="k">${t("hwDoneSp")} · ${totals.sp}/${totals.eligible}</div><div class="v">${hwRateText(totals.sp, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.sp},{started:prevTotals.eligible,completed:prevTotals.sp})}</div>
+      <div class="stat"><div class="k">${t("hwDoneLi")} · ${totals.li}/${totals.eligible}</div><div class="v">${hwRateText(totals.li, totals.eligible)}</div>${cmpHTML({started:totals.eligible,completed:totals.li},{started:prevTotals.eligible,completed:prevTotals.li})}</div>
     </div>
     <div class="grid g3" style="margin-top:12px;grid-template-columns:1fr 1fr 1fr">
-      <div class="stat"><div class="k">课后练习完成率 · ${totals.hwDone}/${totals.hwStart}</div><div class="v">${hwRateText(totals.hwDone, totals.hwStart)}</div>${cmpHTML({started:totals.hwStart,completed:totals.hwDone},{started:prevTotals.hwStart,completed:prevTotals.hwDone})}</div>
-      <div class="stat warn"><div class="k">完成AI课+3个课后练习 / 开课 · ${totals.all3}/${totals.started}</div><div class="v">${hwRateText(totals.all3, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.all3},{started:prevTotals.started,completed:prevTotals.all3})}</div>
-      <div class="stat warn"><div class="k">完成AI课+3个课后练习 / 完课 · ${totals.all3}/${totals.completed}</div><div class="v">${hwRateText(totals.all3, totals.completed)}</div>${cmpHTML({started:totals.completed,completed:totals.all3},{started:prevTotals.completed,completed:prevTotals.all3})}</div>
+      <div class="stat"><div class="k">${t("hwDoneAny")} · ${totals.hwDone}/${totals.hwStart}</div><div class="v">${hwRateText(totals.hwDone, totals.hwStart)}</div>${cmpHTML({started:totals.hwStart,completed:totals.hwDone},{started:prevTotals.hwStart,completed:prevTotals.hwDone})}</div>
+      <div class="stat warn"><div class="k">${t("hwAll3Start")} · ${totals.all3}/${totals.started}</div><div class="v">${hwRateText(totals.all3, totals.started)}</div>${cmpHTML({started:totals.started,completed:totals.all3},{started:prevTotals.started,completed:prevTotals.all3})}</div>
+      <div class="stat warn"><div class="k">${t("hwAll3Done")} · ${totals.all3}/${totals.completed}</div><div class="v">${hwRateText(totals.all3, totals.completed)}</div>${cmpHTML({started:totals.completed,completed:totals.all3},{started:prevTotals.completed,completed:prevTotals.all3})}</div>
     </div>
     <p class="tiny">${esc(caption)}</p>
   `);
 
-  addSec("sec-hw-level", "分 Level", `
-    <h2>分 Level</h2>
+  addSec("sec-hw-level", t("secHwLevel"), `
+    <h2>${t("secHwLevel")}</h2>
     ${tableHTML(
-      ["Level","课程","开课","完课","课程完课率","进入练习","进入 word & sentences","进入 speaking","进入 listening","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
+      ["Level",t("lesson"),t("started"),t("completed"),t("courseCompletion"),t("hwEnterPractice"),t("hwEnterWs"),t("hwEnterSp"),t("hwEnterLi"),t("hwDoneAny"),t("hwDoneWs"),t("hwDoneSp"),t("hwDoneLi"),t("hwAll3Start"),t("hwAll3Done")],
       levelList.filter(l=>!selectedLevel || l.level===selectedLevel).map(l=>{
         const m = byLevel[l.level];
         return [
-          l.label, l.name,
+          l.label, displayLessonName(l.name),
           String(m.started), String(m.completed), hwRateText(m.completed, m.started),
           String(m.hwOpen),
           hwRateText(m.wsOpen, m.eligible), hwRateText(m.spOpen, m.eligible), hwRateText(m.liOpen, m.eligible),
@@ -18152,11 +18871,11 @@ function renderHomeworkView(ctx){
       }),
       2
     )}
-    <p class="tiny">进入练习、三类进入占比、三类完成率的分母都是 9/21 及之后完课的课堂。进入练习是三类进入的并集。课后练习完成率的分母仍是有 afterclass_practice_start 的课堂。完成AI课+3个课后练习有两列：一列占开课，一列占完课。${esc(caption)}</p>
+    <p class="tiny">${t("hwLevelNote")} ${esc(caption)}</p>
   `);
 
-  addSec("sec-hw-funnel", "课后练习漏斗", `
-    <h2>课后练习漏斗</h2>
+  addSec("sec-hw-funnel", t("secHwFunnel"), `
+    <h2>${t("secHwFunnel")}</h2>
     <div class="pills" style="margin:0 0 12px">
       ${hwFunnelTabs.map(([value,label])=>
         `<button type="button" class="pill ${state.hwFunnelTab===value?"active":""}" data-hw-funnel="${value}">${esc(label)}</button>`
@@ -18167,10 +18886,10 @@ function renderHomeworkView(ctx){
   `);
 
   if(bucketKeys.length){
-    addSec("sec-hw-daily", "分日完成情况", `
-      <h2>分日完成情况</h2>
+    addSec("sec-hw-daily", t("secHwDaily"), `
+      <h2>${t("secHwDaily")}</h2>
       ${tableHTML(
-        [useHourly?"小时 UTC":"日期 UTC","开课","完课","进入练习","进入 word & sentences","进入 speaking","进入 listening","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
+        [useHourly?t("utcHour"):t("utcDate"),t("started"),t("completed"),t("hwEnterPractice"),t("hwEnterWs"),t("hwEnterSp"),t("hwEnterLi"),t("hwDoneAny"),t("hwDoneWs"),t("hwDoneSp"),t("hwDoneLi"),t("hwAll3Start"),t("hwAll3Done")],
         bucketKeys.map(key=>{
           const m = byBucket.get(key);
           return [
@@ -18184,18 +18903,18 @@ function renderHomeworkView(ctx){
         }),
         1
       )}
-      <p class="tiny">按课堂在窗口内的首次开课时间归日。${esc(caption)}</p>
+      <p class="tiny">${t("hwDailyNote")} ${esc(caption)}</p>
     `);
   }
 
-  addSec("sec-hw-focus", "马来 / 越南 / 韩国 / 沙特 / 日本", `
-    <h2>马来 / 越南 / 韩国 / 沙特 / 日本</h2>
+  addSec("sec-hw-focus", focusTitle(), `
+    <h2>${focusTitle()}</h2>
     ${tableHTML(
-      ["国家","开课","完课","课程完课率","进入练习","进入 word & sentences","进入 speaking","进入 listening","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
+      [t("country"),t("started"),t("completed"),t("courseCompletion"),t("hwEnterPractice"),t("hwEnterWs"),t("hwEnterSp"),t("hwEnterLi"),t("hwDoneAny"),t("hwDoneWs"),t("hwDoneSp"),t("hwDoneLi"),t("hwAll3Start"),t("hwAll3Done")],
       FOCUS_COUNTRIES.map(c=>{
         const m = selectedLevel ? focusByCountry[c.name][selectedLevel] : focusByCountry[c.name].all;
         return [
-          c.short,
+          displayCountryShort(c.name),
           String(m.started), String(m.completed), hwRateText(m.completed, m.started),
           String(m.hwOpen),
           hwRateText(m.wsOpen, m.eligible), hwRateText(m.spOpen, m.eligible), hwRateText(m.liOpen, m.eligible),
@@ -18206,7 +18925,7 @@ function renderHomeworkView(ctx){
       }),
       1
     )}
-    <p class="tiny">不受上方人群国家下拉影响，仍随时间窗、年龄、能力和「排除 13+」重算。${esc(caption)}</p>
+    <p class="tiny">${t("hwFocusNote")} ${esc(caption)}</p>
   `);
 
   if(!nav.some(item=>item.id===state.section)) state.section = nav[0] ? nav[0].id : "sec-hw-rate";
@@ -18400,17 +19119,17 @@ function render(){
     }
     return {key, cells};
   });
-  const ageLabel = (AGE_FILTERS.find(x=>x.value===state.age)||AGE_FILTERS[0]).label;
-  const abilityFilterLabel = (ABILITY_FILTERS.find(x=>x.value===state.ability)||ABILITY_FILTERS[0]).label;
+  const ageLabel = state.age==="all" ? t("allAges") : state.age==="unknown" ? t("unknownAge") : (AGE_FILTERS.find(x=>x.value===state.age)||AGE_FILTERS[0]).label;
+  const abilityFilterLabel = state.ability==="all" ? t("allAbility") : state.ability==="unknown" ? t("unknownAbility") : (ABILITY_FILTERS.find(x=>x.value===state.ability)||ABILITY_FILTERS[0]).label;
   const extraFilters = [
     state.tiers.length ? tierLabel(state.tiers) : "",
     state.age!=="all" ? ageLabel : "",
     state.ability!=="all" ? abilityFilterLabel : "",
-    state.exclude13 ? "排除13+用户" : "",
+    state.exclude13 ? t("exclude13tag") : "",
   ].filter(Boolean).join(" · ");
-  const caption = `当前筛选 ${windowLabel} · ${segmentLabel}${extraFilters?" · "+extraFilters:""}${selectedLevel?` · L${selectedLevel}`:""}`;
+  const caption = t("currentFilter", {window: windowLabel, segment: segmentLabel}) + (extraFilters?" · "+extraFilters:"") + (selectedLevel?` · L${selectedLevel}`:"");
   document.getElementById("window-label").textContent =
-    `当前窗口 ${windowLabel} · ${segmentLabel}${extraFilters?" · "+extraFilters:""} · 开课 ${totals.started} 节 · 对比上期 ${prevLabel}`;
+    t("currentWindow", {window: windowLabel, segment: segmentLabel, n: totals.started, prev: prevLabel}) + (extraFilters?" · "+extraFilters:"");
 
   if(state.board==="homework" || state.board==="formal_hw"){
     renderHomeworkView({
@@ -18424,7 +19143,7 @@ function render(){
   }
 
   let lead = "";
-  if(!windowValid) lead += `<div class="callout warn"><b>时间格式无效</b>　请使用 UTC 日期 YYYY-MM-DD 和时间 HH:MM:SS，且开始不晚于结束。下方暂时回退到 9/14 00:00:00 – 最新。</div>`;
+  if(!windowValid) lead += `<div class="callout warn">${t("invalidTime")}</div>`;
   const nav = [];
   const sectionOrder = [];
   const sections = {};
@@ -18434,10 +19153,10 @@ function render(){
     sections[id] = inner;
   };
 
-  addSec("sec-rate", `体验课完课率（${segmentLabel}）`, `
-    <h2>体验课完课率（${esc(segmentLabel)}）</h2>
+  addSec("sec-rate", t("secRate", {segment: segmentLabel}), `
+    <h2>${t("secRate", {segment: esc(segmentLabel)})}</h2>
     <div class="grid g5">
-    <div class="stat info"><div class="k">${selectedLevel?`L${selectedLevel}`:"合计"}完课率 · ${countText(totals)}</div><div class="v">${rateText(totals)}</div>${cmpHTML(totals, prevTotals)}</div>
+    <div class="stat info"><div class="k">${selectedLevel?`L${selectedLevel}`:t("total")}${t("completion")} · ${countText(totals)}</div><div class="v">${rateText(totals)}</div>${cmpHTML(totals, prevTotals)}</div>
     ${LEVELS.map(l=>`<div class="stat${l.level===4?" warn":""}"><div class="k">${l.label} ${l.name} · ${countText(byLevel[l.level])}</div><div class="v">${rateText(byLevel[l.level])}</div>${cmpHTML(byLevel[l.level], prevByLevel[l.level])}</div>`).join("")}
     </div>
   `);
@@ -18455,14 +19174,14 @@ function render(){
     );
     return `<div class="analysis-card">
       <h3>${esc(note.title)} <span class="prev">${note.prevCmp}</span></h3>
-      <p><b>国家</b>　${esc(note.country)}</p>
-      ${note.profile ? `<p><b>进课画像</b>　${esc(note.profile)}</p>` : ""}
-      ${note.gap ? `<p><b>距 50%</b>　${esc(note.gap)}</p>` : ""}
+      <p><b>${t("country")}</b>　${esc(note.country)}</p>
+      ${note.profile ? `<p><b>${t("profile")}</b>　${esc(note.profile)}</p>` : ""}
+      ${note.gap ? `<p><b>${t("gap50")}</b>　${esc(note.gap)}</p>` : ""}
     </div>`;
   }).join("");
-  addSec("sec-analysis", "完课率分析", `
-    <h2>完课率分析</h2>
-    <p class="tiny">对照上一相同时长周期 ${esc(prevLabel)}。改 UTC 窗口或筛选后，这一节按当前数字重写。先写马来、越南、韩国、沙特、日本的完课率和开课占比；泰国、印尼或其他国家只有在把本级别完课率往下拉时才写出。核心用户按 5–8 岁看占比和完课率相对上期的变化，并和这五个国家交叉。英文能力只在已回填的课里对比，回填不足时不拿能力结构解释完课。L3 / L4 另写距 50% 的缺口。</p>
+  addSec("sec-analysis", t("secAnalysis"), `
+    <h2>${t("secAnalysis")}</h2>
+    <p class="tiny">${t("analysisIntro", {prev: esc(prevLabel)})}</p>
     ${analysisCards}
   `);
 
@@ -18476,19 +19195,19 @@ function render(){
   let deviceInner = "";
   if(deviceRows.length){
     deviceInner = `
-      <h2>设备档位 x 完课率</h2>
-      <p class="tiny">机型来自 Firebase 硬件型号，档位只对照设备用户明细表的 device_model × level，不用表里的课堂或用户历史。交叉随当前 UTC 窗口、国家、级别、年龄、能力一起重算。单元格为完课率 · 完课/开课。</p>
+      <h2>${t("secDevice")}</h2>
+      <p class="tiny">${t("deviceNote")}</p>
       <div class="grid g5" style="margin-bottom:12px">
         ${TIER_ORDER.map(t=>{
           const m = tierNow.get(t) || emptyMetric();
           if(!m.started) return "";
-          return `<div class="stat"><div class="k">${t} · ${countText(m)}</div><div class="v">${rateText(m)}</div>${cmpHTML(m, tierPrev.get(t)||emptyMetric())}</div>`;
+          return `<div class="stat"><div class="k">${displayTier(t)} · ${countText(m)}</div><div class="v">${rateText(m)}</div>${cmpHTML(m, tierPrev.get(t)||emptyMetric())}</div>`;
         }).join("")}
       </div>
       ${groupBarChart(
         LEVELS.filter(l=>selectedLevel===null || l.level===selectedLevel).map(l=>l.label),
         TIER_ORDER.filter(t=>(tierNow.get(t)||emptyMetric()).started).map(t=>({
-          name: t,
+          name: displayTier(t),
           color: TIER_COLORS[t],
           data: LEVELS.filter(l=>selectedLevel===null || l.level===selectedLevel).map(l=>{
             const metric = emptyMetric();
@@ -18500,12 +19219,12 @@ function render(){
         }))
       )}
       ${tableHTML(
-        ["档位","开课","完课","未完课","完课率","占完课","占未完课","上期完课率"],
-        tierNowList.map(([t,m])=>{
-          const prev = tierPrev.get(t) || emptyMetric();
+        [t("deviceCol"),t("started"),t("completed"),t("incomplete"),t("completion"),t("tierOfDone"),t("tierOfMiss"),t("prevCompletion")],
+        tierNowList.map(([tierName,m])=>{
+          const prev = tierPrev.get(tierName) || emptyMetric();
           const miss = m.started-m.completed;
           return [
-            t,
+            displayTier(tierName),
             String(m.started),
             String(m.completed),
             String(miss),
@@ -18517,7 +19236,7 @@ function render(){
         }),
         1
       )}
-      <p class="tiny">占完课 / 占未完课：该档位在完课课堂、未完课课堂里的占比。横轴：体验课 Level；纵轴：该档位完课率（%）。</p>
+      <p class="tiny">${t("deviceShareNote")}</p>
       ${(() => {
         const levels = LEVELS.filter(l=>selectedLevel===null || l.level===selectedLevel);
         const shareTiers = TIER_ORDER.filter(t=>(tierNow.get(t)||emptyMetric()).started);
@@ -18538,12 +19257,12 @@ function render(){
           if(denomOf(users, false)){ missCats.push(l.label); missUsersAt.push(users); }
         }
         const doneSeries = shareTiers.map(t=>({
-          name: t,
+          name: displayTier(t),
           color: TIER_COLORS[t],
           data: doneUsersAt.map(users=>sharePct(users, true, t)),
         })).filter(s=>s.data.some(v=>v>0));
         const missSeries = shareTiers.map(t=>({
-          name: t,
+          name: displayTier(t),
           color: TIER_COLORS[t],
           data: missUsersAt.map(users=>sharePct(users, false, t)),
         })).filter(s=>s.data.some(v=>v>0));
@@ -18555,10 +19274,10 @@ function render(){
             rows.push([label, String(denom), ...shareTiers.map(t=>tierShareText(countTier(users, true, t), denom))]);
           };
           if(selectedLevel===null && levels.length>1){
-            addRow("全部", outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, null));
+            addRow(t("total"), outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, null));
           }
-          for(const l of levels) addRow(l.label+" "+l.name, outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, l.level));
-          return rows.length ? tableHTML(["Level","完课用户", ...shareTiers.map(t=>t+"占比")], rows, 1) : "";
+          for(const l of levels) addRow(l.label+" "+displayLessonName(l.name), outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, l.level));
+          return rows.length ? tableHTML(["Level",t("doneUserCol"), ...shareTiers.map(tier=>t("tierShareCol", {tier: displayTier(tier)}))], rows, 1) : "";
         })();
         const missTable = (()=>{
           const rows = [];
@@ -18568,24 +19287,24 @@ function render(){
             rows.push([label, String(denom), ...shareTiers.map(t=>tierShareText(countTier(users, false, t), denom))]);
           };
           if(selectedLevel===null && levels.length>1){
-            addRow("全部", outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, null));
+            addRow(t("total"), outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, null));
           }
-          for(const l of levels) addRow(l.label+" "+l.name, outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, l.level));
-          return rows.length ? tableHTML(["Level","未完课用户", ...shareTiers.map(t=>t+"占比")], rows, 1) : "";
+          for(const l of levels) addRow(l.label+" "+displayLessonName(l.name), outcomeUsers(deviceRows, rangeEnd, state.wrapupComplete, l.level));
+          return rows.length ? tableHTML(["Level",t("missUserCol"), ...shareTiers.map(tier=>t("tierShareCol", {tier: displayTier(tier)}))], rows, 1) : "";
         })();
         return `
-          <h3>各 Level · 完课 / 未完课用户的档位占比</h3>
-          <p class="tiny">完课用户：该 Level 窗口内至少 1 节完课；未完课用户：该 Level 有开课且 0 节完课。同一用户在同一 Level 只计一次。格子是占该组用户% · 人数。</p>
+          <h3>${t("tierMixTitle")}</h3>
+          <p class="tiny">${t("tierMixNote")}</p>
           ${doneCats.length && doneSeries.length ? groupBarChart(doneCats, doneSeries) : ""}
-          ${doneCats.length ? `<p class="tiny">横轴：体验课 Level；纵轴：该档位占该 Level 完课用户（%）。</p>` : ""}
+          ${doneCats.length ? `<p class="tiny">${t("doneUsersAxis")}</p>` : ""}
           ${doneTable}
           ${missCats.length && missSeries.length ? groupBarChart(missCats, missSeries) : ""}
-          ${missCats.length ? `<p class="tiny">横轴：体验课 Level；纵轴：该档位占该 Level 未完课用户（%）。</p>` : ""}
+          ${missCats.length ? `<p class="tiny">${t("missUsersAxis")}</p>` : ""}
           ${missTable}
         `;
       })()}
       ${(() => {
-        const shareCountries = [...PROFILE_COUNTRIES.map(c=>({name:c.name, short:c.short})), {name:"其他", short:"其他"}];
+        const shareCountries = [...PROFILE_COUNTRIES.map(c=>({name:c.name, short:displayCountryShort(c.name)})), {name:"其他", short:t("other")}];
         const shareColors = ["#4a7cff","#2a8f6f","#c47b1a","#1d3f99","#888","#b42318","#bbb"];
         const profileNames = new Set(PROFILE_COUNTRIES.map(c=>c.name));
         const countAt = (tier, country)=>{
@@ -18599,9 +19318,9 @@ function render(){
         const visible = TIER_ORDER.filter(t=>(tierNow.get(t)||emptyMetric()).started);
         const shareText = (n, denom)=> denom && n ? ((n/denom)*100).toFixed(1)+"% · "+n : "—";
         return `
-          <h3>各档位 · 国家占比</h3>
+          <h3>${t("tierCountryTitle")}</h3>
           ${groupBarChart(
-            visible,
+            visible.map(displayTier),
             shareCountries.map((c,i)=>({
               name: c.short,
               color: shareColors[i],
@@ -18613,42 +19332,42 @@ function render(){
             })).filter(s=>s.data.some(v=>v>0))
           )}
           ${tableHTML(
-            ["档位","开课", ...shareCountries.map(c=>c.short+"占比")],
-            visible.map(t=>{
-              const denom = (tierNow.get(t)||emptyMetric()).started;
-              return [t, String(denom), ...shareCountries.map(c=>shareText(countAt(t, c.name), denom))];
+            [t("deviceCol"),t("started"), ...shareCountries.map(c=>t("countryShareCol", {name: c.short}))],
+            visible.map(tierName=>{
+              const denom = (tierNow.get(tierName)||emptyMetric()).started;
+              return [displayTier(tierName), String(denom), ...shareCountries.map(c=>shareText(countAt(tierName, c.name), denom))];
             }),
             1
           )}
-          <p class="tiny">各档位内部的开课国家结构。横轴：设备档位；纵轴：该国占该档位开课（%）。格子是占该档位开课% · 开课数。</p>
+          <p class="tiny">${t("tierCountryNote")}</p>
         `;
       })()}
       ${tableHTML(
-        ["档位", ...LEVELS.map(l=>l.label+" "+l.name)],
-        TIER_ORDER.map(t=>{
-          const row = [t];
+        [t("deviceCol"), ...LEVELS.map(l=>l.label+" "+displayLessonName(l.name))],
+        TIER_ORDER.map(tierName=>{
+          const row = [displayTier(tierName)];
           let any = false;
           for(const l of LEVELS){
             const metric = emptyMetric();
             for(const item of deviceRows){
-              if(item.level===l.level && (item.tier||"未知")===t) add(metric, isCompleted(item, rangeEnd, state.wrapupComplete));
+              if(item.level===l.level && (item.tier||"未知")===tierName) add(metric, isCompleted(item, rangeEnd, state.wrapupComplete));
             }
             if(metric.started) any = true;
-            row.push(metric.started ? `${rateText(metric)} · ${metric.completed}/${metric.started} · 未完${metric.started-metric.completed}` : "—");
+            row.push(metric.started ? `${rateText(metric)} · ${metric.completed}/${metric.started} · ${t("incompleteN", {n: metric.started-metric.completed})}` : "—");
           }
           return any ? row : null;
         }).filter(Boolean),
         1
       )}
       ${tableHTML(
-        ["档位", ...PROFILE_COUNTRIES.map(c=>c.short), "其他"],
-        TIER_ORDER.map(t=>{
-          const row = [t];
+        [t("deviceCol"), ...PROFILE_COUNTRIES.map(c=>displayCountryShort(c.name)), t("other")],
+        TIER_ORDER.map(tierName=>{
+          const row = [displayTier(tierName)];
           let any = false;
           for(const c of PROFILE_COUNTRIES){
             const metric = emptyMetric();
             for(const item of deviceRows){
-              if((item.tier||"未知")===t && item.country===c.name) add(metric, isCompleted(item, rangeEnd, state.wrapupComplete));
+              if((item.tier||"未知")===tierName && item.country===c.name) add(metric, isCompleted(item, rangeEnd, state.wrapupComplete));
             }
             if(metric.started) any = true;
             row.push(detail(metric));
@@ -18656,7 +19375,7 @@ function render(){
           const other = emptyMetric();
           const profileNames = new Set(PROFILE_COUNTRIES.map(c=>c.name));
           for(const item of deviceRows){
-            if((item.tier||"未知")===t && !profileNames.has(item.country)) add(other, isCompleted(item, rangeEnd, state.wrapupComplete));
+            if((item.tier||"未知")===tierName && !profileNames.has(item.country)) add(other, isCompleted(item, rangeEnd, state.wrapupComplete));
           }
           if(other.started) any = true;
           row.push(detail(other));
@@ -18664,27 +19383,27 @@ function render(){
         }).filter(Boolean),
         1
       )}
-      <p class="tiny">上表：档位 × 核心国家完课率。${esc(caption)}</p>
+      <p class="tiny">${t("tierCountryRate")} ${esc(caption)}</p>
       ${tableHTML(
-        ["档位","国家", ...LEVELS.map(l=>l.label)],
+        [t("deviceCol"),t("country"), ...LEVELS.map(l=>l.label)],
         (() => {
           const countries = [...PROFILE_COUNTRIES.map(c=>c.name), "其他"];
           const profileNames = new Set(PROFILE_COUNTRIES.map(c=>c.name));
           const rows = [];
-          for(const t of TIER_ORDER){
+          for(const tierName of TIER_ORDER){
             for(const country of countries){
-              const cells = [t, country];
+              const cells = [displayTier(tierName), displayCountry(country)];
               let any = false;
               for(const l of LEVELS){
                 const metric = emptyMetric();
                 for(const item of deviceRows){
                   const itemCountry = profileNames.has(item.country) ? item.country : "其他";
-                  if((item.tier||"未知")===t && itemCountry===country && item.level===l.level){
+                  if((item.tier||"未知")===tierName && itemCountry===country && item.level===l.level){
                     add(metric, isCompleted(item, rangeEnd, state.wrapupComplete));
                   }
                 }
                 if(metric.started) any = true;
-                cells.push(metric.started ? `${rateText(metric)} · ${metric.completed}/${metric.started} · 未完${metric.started-metric.completed}` : "—");
+                cells.push(metric.started ? `${rateText(metric)} · ${metric.completed}/${metric.started} · ${t("incompleteN", {n: metric.started-metric.completed})}` : "—");
               }
               if(any) rows.push(cells);
             }
@@ -18693,43 +19412,43 @@ function render(){
         })(),
         2
       )}
-      <p class="tiny">档位 × 国家 × Level：每个格子是完课率 · 完课/开课 · 未完课数。${esc(caption)}</p>
+      <p class="tiny">${t("tierCountryLevel")} ${esc(caption)}</p>
     `;
   }
 
   if(totals.started>0){
-    addSec("sec-focus", "马来 / 越南 / 韩国 / 沙特 / 日本 · 分 Level 完课率", `
-      <h2>马来 / 越南 / 韩国 / 沙特 / 日本 · 分 Level 完课率</h2>
+    addSec("sec-focus", t("secFocus"), `
+      <h2>${t("secFocus")}</h2>
       <div class="grid g5" style="margin-bottom:12px">
         ${FOCUS_COUNTRIES.map(c=>{
           const m = focusByCountry[c.name].all;
-          return `<div class="stat"><div class="k">${c.short}合计 · ${countText(m)}</div><div class="v">${rateText(m)}</div>${cmpHTML(m, prevFocusByCountry[c.name].all)}</div>`;
+          return `<div class="stat"><div class="k">${displayCountryShort(c.name)} ${t("total")} · ${countText(m)}</div><div class="v">${rateText(m)}</div>${cmpHTML(m, prevFocusByCountry[c.name].all)}</div>`;
         }).join("")}
       </div>
       ${groupBarChart(
         LEVELS.map(l=>l.label),
         FOCUS_COUNTRIES.map(c=>({
-          name: c.short,
+          name: displayCountryShort(c.name),
           color: c.color,
           data: LEVELS.map(l=>rate(focusByCountry[c.name][l.level])||0),
         }))
       )}
       ${tableHTML(
-        ["Level","课程", ...FOCUS_COUNTRIES.map(c=>c.short)],
+        ["Level",t("lesson"), ...FOCUS_COUNTRIES.map(c=>displayCountryShort(c.name))],
         LEVELS.map(l=>[
           l.label,
-          l.name,
+          displayLessonName(l.name),
           ...FOCUS_COUNTRIES.map(c=>focusDetail(focusByCountry[c.name][l.level], prevFocusByCountry[c.name][l.level])),
         ]),
         2,
         2
       )}
-      <p class="tiny">横轴：体验课 Level；纵轴：课堂完课率（%）。只看马来西亚、越南、韩国、沙特阿拉伯、日本，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点，+ 为上升，− 为下降。</p>
+      <p class="tiny">${isEn() ? "X-axis: trial level; Y-axis: class completion (%). Malaysia, Vietnam, Korea, Saudi Arabia, and Japan only. Recalculates with the UTC window, age, ability, and “exclude 13+”; ignores the country filter above. Cells are completion · completed/started. Parentheses are percentage points vs the previous period of the same length." : "横轴：体验课 Level；纵轴：课堂完课率（%）。只看马来西亚、越南、韩国、沙特阿拉伯、日本，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点，+ 为上升，− 为下降。"}</p>
     `);
-    addSec("sec-profile", "核心国家 · 年龄 × 英文能力"+ (selectedLevel?" · "+currentLevel.label:""), `
-      <h2>核心国家 · 年龄 × 英文能力${selectedLevel?" · "+currentLevel.label:""}</h2>
+    addSec("sec-profile", t("secProfile")+ (selectedLevel?" · "+currentLevel.label:""), `
+      <h2>${t("secProfile")}${selectedLevel?" · "+currentLevel.label:""}</h2>
       <div class="pills" style="margin-bottom:10px">
-        ${PROFILE_COUNTRIES.map(c=>`<button class="pill ${state.profileCountry===c.name?"active":""}" data-profile-country="${c.name}">${c.short}</button>`).join("")}
+        ${PROFILE_COUNTRIES.map(c=>`<button class="pill ${state.profileCountry===c.name?"active":""}" data-profile-country="${c.name}">${displayCountryShort(c.name)}</button>`).join("")}
       </div>
       ${(() => {
         const c = PROFILE_COUNTRIES.find(x=>x.name===state.profileCountry) || PROFILE_COUNTRIES[0];
@@ -18739,25 +19458,25 @@ function render(){
           .sort((a,b)=>a.level-b.level || b.metric.started-a.metric.started);
         const cover = levels.map(l=>{
           const cov = profileCover[c.name][l.level];
-          if(!cov.total.started) return l.label+" 无开课";
-          return l.label+" 能力回填 "+cov.withAbility.started+"/"+cov.total.started;
+          if(!cov.total.started) return t("noClass", {level: l.label});
+          return t("abilityFill", {level: l.label, n: cov.withAbility.started, d: cov.total.started});
         }).join(" · ");
         const mains = levels.map(l=>{
           const top = rows.find(r=>r.level===l.level);
           if(!top) return "";
-          return l.label+" 主交叉 "+top.age+" × "+top.ability+" "+detail(top.metric)+"（占"+profileShare(top)+"）";
-        }).filter(Boolean).join("；");
-        let body = `<p class="tiny">${esc(c.short)} · ${esc(c.name)}　${esc(cover)}</p>`;
+          return t("mainCross", {level: l.label, age: displayAge(top.age), ability: displayAbilityName(top.ability), detail: detail(top.metric), share: profileShare(top)});
+        }).filter(Boolean).join(isEn() ? "; " : "；");
+        let body = `<p class="tiny">${esc(displayCountryShort(c.name))} · ${esc(displayCountry(c.name))}　${esc(cover)}</p>`;
         if(mains) body += `<p class="tiny">${esc(mains)}</p>`;
         if(rows.length){
           body += tableHTML(
-            ["Level","年龄","英文能力","开课","完课","完课率","上一周期完课率","占该Level"],
+            ["Level",t("ageCol"),t("abilityCol"),t("started"),t("completed"),t("completion"),t("prevPeriodRate"),t("ofThisLevel")],
             rows.map(r=>{
               const prev = prevProfileMap.get(r.country+"\t"+r.level+"\t"+r.age+"\t"+r.ability) || emptyMetric();
               return [
                 "L"+r.level,
-                r.age,
-                r.ability,
+                displayAge(r.age),
+                displayAbilityName(r.ability),
                 String(r.metric.started),
                 String(r.metric.completed),
                 rateText(r.metric),
@@ -18768,22 +19487,22 @@ function render(){
             3
           );
         } else {
-          body += `<p class="tiny">该窗口没有 ${esc(c.short)} 的交叉开课。</p>`;
+          body += `<p class="tiny">${t("noCross", {name: displayCountryShort(c.name)})}</p>`;
         }
         if(c.name==="韩国"){
           const koreaRows = rows.filter(r=>r.metric.started>=2);
           if(koreaRows.length){
-            body += `<h3>韩国主交叉 vs 马来 / 越南同画像</h3>` + tableHTML(
-              ["Level","年龄 × 英文能力","韩国","马来同画像","越南同画像"],
+            body += `<h3>${t("koreaVs")}</h3>` + tableHTML(
+              ["Level", t("ageCol")+" × "+t("abilityCol"), displayCountryShort("韩国"), displayCountryShort("马来西亚")+" "+t("sameProfile"), displayCountryShort("越南")+" "+t("sameProfile")],
               koreaRows.map(r=>{
                 const my = lookupProfile("马来西亚", r.level, r.age, r.ability);
                 const vn = lookupProfile("越南", r.level, r.age, r.ability);
                 return [
                   "L"+r.level,
-                  r.age+" × "+r.ability,
-                  detail(r.metric)+" · 占"+profileShare(r),
-                  my ? detail(my.metric)+" · 占"+profileShare(my) : "无同画像",
-                  vn ? detail(vn.metric)+" · 占"+profileShare(vn) : "无同画像",
+                  displayAge(r.age)+" × "+displayAbilityName(r.ability),
+                  detail(r.metric)+" · "+t("ofLevel")+" "+profileShare(r),
+                  my ? detail(my.metric)+" · "+t("ofLevel")+" "+profileShare(my) : t("noSameProfile"),
+                  vn ? detail(vn.metric)+" · "+t("ofLevel")+" "+profileShare(vn) : t("noSameProfile"),
                 ];
               }),
               2
@@ -18792,7 +19511,7 @@ function render(){
         }
         return body;
       })()}
-      <p class="tiny">切换国家 Tab 只换交叉表，不改上方完课率筛选。每个格子是该国该 Level 的年龄 × Onboarding 英文能力交叉。完课率看转化，占该 Level 看结构。上一周期完课率是紧挨当前窗口、等长的上一段，括号里是相对上期的百分点。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算。L4 英文能力尚未回填到本窗口课堂，会落在「能力未知」。韩国 Tab 另与马来、越南同画像对照，用来区分「进的人不同」还是「同一画像完课更差」。</p>
+      <p class="tiny">${isEn() ? "The country tab only changes this cross table, not the completion filter above. Each cell is that country’s age × Onboarding English-ability cross at this level. Completion is conversion; share of the level is mix. Previous-period completion is the equal-length window immediately before. Recalculates with the UTC window, age, ability, and “exclude 13+”. L4 ability is not yet filled for this window and lands in Unknown ability. The Korea tab also compares the same Malaysia / Vietnam profile, to separate “different people entered” from “the same profile completes worse”." : "切换国家 Tab 只换交叉表，不改上方完课率筛选。每个格子是该国该 Level 的年龄 × Onboarding 英文能力交叉。完课率看转化，占该 Level 看结构。上一周期完课率是紧挨当前窗口、等长的上一段，括号里是相对上期的百分点。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算。L4 英文能力尚未回填到本窗口课堂，会落在「能力未知」。韩国 Tab 另与马来、越南同画像对照，用来区分「进的人不同」还是「同一画像完课更差」。"}</p>
     `);
 
   const funnelLevel = state.funnelLevel || "1";
@@ -18806,28 +19525,28 @@ function render(){
         ...funnelVersions.filter(ver=>ver==="2"),
       ]
     : funnelVersions;
-  addSec("sec-funnel", "Template触达漏斗", `
-    <h2>Template触达漏斗</h2>
-    <p class="tiny">触达=该 Template 至少第 n 次 <code>class_stage_start</code>。右侧平均耗时=完成了该步并进入下一步的课堂，该步停留时长的平均值，单位 min；单步超过 20 分钟的重进间隔不计入。最后一行「完课」不展示平均耗时。L2–L4 分 V1 / V2 并列。L1 的 V1 已下架，默认只展示 V2，点右侧「展示V1」可对照下架前漏斗。原来的「导入 / 故事导入」拆成 lead-in 内三步：pre-video、video、post-video。欢迎/引出课程视频=进入 pre-video。播放课程视频=完成 video。引出词汇教学视频=完成 post-video，或已经开始单词教学视频（有课 post-video 未标 COMPLETED / 步骤行滞后，但 class_stage_start 已到 play-video，按触达计，避免后一步反超）。V1 的 pre-video 经常瞬间完成，所以播放不看完成 pre-video。后面的「单词教学视频」「教词 1 / 单词教学」仍按原模板计。每列分母是该版本开课，最后一步完课对应该版本完课率。窗口里还没有该版本开课的列会收起。完课仍看 trial complete。漏斗 Level Tab 只切这条漏斗，不改上方完课率筛选。${esc(caption)}</p>
+  addSec("sec-funnel", t("secFunnel"), `
+    <h2>${t("secFunnel")}</h2>
+    <p class="tiny">${t("funnelCaption")} ${esc(caption)}</p>
     <div class="sec-head" style="margin-bottom:10px">
       <div class="pills">
         ${LEVELS.map(l=>`<button class="pill ${funnelLevel===String(l.level)?"active":""}" data-funnel-level="${l.level}">${l.label} ${l.name}</button>`).join("")}
       </div>
-      ${l1HasV1 ? `<button type="button" class="expand-btn" data-funnel-l1-v1>${state.funnelShowL1V1?"收起V1":"展示V1"}</button>` : ""}
+      ${l1HasV1 ? `<button type="button" class="expand-btn" data-funnel-l1-v1>${state.funnelShowL1V1?t("hideV1"):t("showV1")}</button>` : ""}
     </div>
     ${visibleFunnelVersions.length ? `
       <div class="grid ${visibleFunnelVersions.length>1?"funnel-pair":"g1"}">
         ${visibleFunnelVersions.map(ver=>{
           const rows = funnelLevelRows.filter(row=>funnelVersion(row.version, funnelLevel)===ver);
           const steps = versionFunnelSteps(Number(funnelLevel), ver, rows, rangeEnd);
-          const title = VERSION_FUNNEL_LABEL[ver] || ("V"+ver);
+          const title = ver==="1" ? t("v1Warmup") : ver==="2" ? t("v2Leadin") : ("V"+ver);
           return `<div>
-            <h3>${esc(title)} · 开课 ${rows.length}</h3>
+            <h3>${t("funnelOpen", {title: esc(title), n: rows.length})}</h3>
             ${funnelBars(steps)}
           </div>`;
         }).join("")}
       </div>
-    ` : `<p class="tiny">当前筛选下该 Level 没有开课。</p>`}
+    ` : `<p class="tiny">${t("funnelEmpty")}</p>`}
   `);
     {
       const lv = Number(state.versionLevel || "1");
@@ -18837,53 +19556,53 @@ function render(){
       const v1rows = focusBase.filter(row=>row.level===lv && versionLabel(row.version)==="V1");
       const v2rows = focusBase.filter(row=>row.level===lv && versionLabel(row.version)==="V2");
       const vgap = (rate(vv2)!==null && rate(vv1)!==null) ? (rate(vv2)-rate(vv1)).toFixed(1) : "—";
-      addSec("sec-version", "版本对比 · V1 vs V2", `
+      addSec("sec-version", t("secVersion"), `
         <div class="sec-head">
-          <h2>版本对比 · V1 vs V2</h2>
-          <button type="button" class="expand-btn" data-version-toggle>${state.versionOpen?"收起":"展开"}</button>
+          <h2>${t("secVersion")}</h2>
+          <button type="button" class="expand-btn" data-version-toggle>${state.versionOpen?t("collapse"):t("expand")}</button>
         </div>
         ${state.versionOpen ? `
         <div class="pills" style="margin-bottom:10px">
           ${LEVELS.map(l=>`<button class="pill ${lv===l.level?"active":""}" data-version-level="${l.level}">${l.label} ${l.name}</button>`).join("")}
         </div>
         <div class="grid g3" style="margin-bottom:12px">
-          <div class="stat"><div class="k">${esc(meta.label)} V1 热身开场 · ${countText(vv1)}</div><div class="v">${rateText(vv1)}</div></div>
-          <div class="stat info"><div class="k">${esc(meta.label)} V2 直接导入 · ${countText(vv2)}</div><div class="v">${rateText(vv2)}</div></div>
-          <div class="stat"><div class="k">${esc(meta.label)} V2相对V1</div><div class="v">${vgap==="—"?"—":(Number(vgap)>0?"+":"")+vgap+"pp"}</div></div>
+          <div class="stat"><div class="k">${esc(meta.label)} ${t("v1Warmup")} · ${countText(vv1)}</div><div class="v">${rateText(vv1)}</div></div>
+          <div class="stat info"><div class="k">${esc(meta.label)} ${t("v2Leadin")} · ${countText(vv2)}</div><div class="v">${rateText(vv2)}</div></div>
+          <div class="stat"><div class="k">${esc(meta.label)} ${t("v2vsV1")}</div><div class="v">${vgap==="—"?"—":(Number(vgap)>0?"+":"")+vgap+"pp"}</div></div>
         </div>
         ${lv===1 ? "" : `
-        <h3 style="margin:16px 0 8px">画像分布（占该版本开课）</h3>
+        <h3 style="margin:16px 0 8px">${t("profileShare")}</h3>
         <div class="grid funnel-pair">
           <div>
-            <h3>年龄占比（%）</h3>
-            ${versionShareChart(v1rows, v2rows, row=>row.age||"年龄未知", ["3–5","6–8","9–12","13–17","18+","13+","年龄未知"])}
+            <h3>${t("ageShare")}</h3>
+            ${versionShareChart(v1rows, v2rows, row=>displayAge(row.age||"年龄未知"), ["3–5","6–8","9–12","13–17","18+","13+",t("unknownAge")])}
           </div>
           <div>
-            <h3>Onboarding 英文能力占比（%）</h3>
-            ${versionShareChart(v1rows, v2rows, row=>abilityLabel(row.ability), [...Object.values(ABILITY_LABEL), "能力未知"])}
+            <h3>${t("abilityShare")}</h3>
+            ${versionShareChart(v1rows, v2rows, row=>displayAbilityName(abilityLabel(row.ability)), [...Object.values(ABILITY_LABEL), t("unknownAbility")])}
           </div>
           <div>
-            <h3>主要国家占比（%）</h3>
-            ${versionShareChart(v1rows, v2rows, row=>countryShort(row.country), ["马来","越南","韩国","沙特","泰国","印尼"], 8)}
+            <h3>${t("countryShare")}</h3>
+            ${versionShareChart(v1rows, v2rows, row=>countryShort(row.country), [displayCountryShort("马来西亚"),displayCountryShort("越南"),displayCountryShort("韩国"),displayCountryShort("沙特阿拉伯"),displayCountryShort("泰国"),displayCountryShort("印度尼西亚")], 8)}
           </div>
           <div>
-            <h3>设备系统占比（%）</h3>
-            ${versionShareChart(v1rows, v2rows, row=>osLabel(row.os), ["Android","iOS","其他"])}
+            <h3>${t("osShare")}</h3>
+            ${versionShareChart(v1rows, v2rows, row=>osLabel(row.os), ["Android","iOS",t("otherOs")])}
           </div>
         </div>
-        <p class="tiny">画像来自 Onboarding 年龄 / 英文能力，以及开课课堂的国家和设备系统。纵轴是占该版本开课的比例。L1 不展示画像。切 Level Tab 只换这一段，不改漏斗、也不改上方完课率筛选。随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。</p>
+        <p class="tiny">${t("versionProfileNote")}</p>
         `}
-        ` : `<p class="tiny">默认折叠。点右侧展开查看 V1 / V2 完课率和画像。</p>`}
+        ` : `<p class="tiny">${t("versionCollapsed")}</p>`}
       `, true);
     }
 
     if(allInWindow.length){
-      addSec("sec-age-level", "年龄 × 级别 × 完课率", `
-        <h2>年龄 × 级别 × 完课率</h2>
+      addSec("sec-age-level", t("secAgeLevel"), `
+        <h2>${t("secAgeLevel")}</h2>
         ${tableHTML(
-          ["年龄","L1","L2","L3","L4"],
+          [t("ageCol"),"L1","L2","L3","L4"],
           AGE_LEVEL_YEARS.map(age=>[
-            age+" 岁",
+            t("ageYear", {age}),
             rateHitCell(ageLevelMap[age][1]),
             rateHitCell(ageLevelMap[age][2]),
             rateHitCell(ageLevelMap[age][3]),
@@ -18895,64 +19614,64 @@ function render(){
       `);
     }
 
-    addSec("sec-daily", useHourly?"分小时完课率":"分日完课率", `
-      <h2>${useHourly?"分小时完课率":"分日完课率"}</h2>
+    addSec("sec-daily", useHourly?t("secDailyHour"):t("secDailyDay"), `
+      <h2>${useHourly?t("secDailyHour"):t("secDailyDay")}</h2>
       ${lineChart(
         bucketKeys.map(k=>useHourly?k.slice(6):k.slice(5)),
         selectedLevel
           ? [{name:currentLevel.label, data:bucketKeys.map(k=>rate(byBucket.get(k)[selectedLevel])||0)}]
           : LEVELS.map(l=>({name:l.label, data:bucketKeys.map(k=>rate(byBucket.get(k)[l.level])||0)}))
       )}
-      <p class="tiny">横轴：开课时间（UTC ${useHourly?"小时":"日期"}）；纵轴：课堂完课率（%）。窗口不超过 48 小时时切到小时。${esc(caption)}</p>
+      <p class="tiny">${t("dailyCaption", {unit: useHourly?t("hour"):t("day")})} ${esc(caption)}</p>
     `);
   } else {
-    lead += `<div class="callout warn"><b>这个 UTC 窗口没有开课</b>　可放宽时间窗，或把人群改回全部国家。数据最早从 ${DATA_START} UTC 开始。</div>`;
+    lead += `<div class="callout warn">${t("noStarts", {start: DATA_START})}</div>`;
   }
 
   if(dailySegmentRows.length){
-    addSec("sec-daily-country", (useHourly?"分小时 × 国家段":"分日 × 国家段")+(currentLevel?" · "+currentLevel.label:""), `<h2>${useHourly?"分小时 × 国家段":"分日 × 国家段"}${currentLevel?" · "+currentLevel.label:""}</h2>${tableHTML(
-      [useHourly?"UTC 小时":"UTC 日期", ...DAILY_SEGMENTS.map(x=>x.label)],
+    addSec("sec-daily-country", (useHourly?t("secDailyCountryHour"):t("secDailyCountryDay"))+(currentLevel?" · "+currentLevel.label:""), `<h2>${useHourly?t("secDailyCountryHour"):t("secDailyCountryDay")}${currentLevel?" · "+currentLevel.label:""}</h2>${tableHTML(
+      [useHourly?t("utcHour"):t("utcDate"), ...DAILY_SEGMENTS.map(x=>x.value==="all"?t("allSeg"):displayCountryShort(({malaysia:"马来西亚",vietnam:"越南",korea:"韩国",saudi:"沙特阿拉伯",japan:"日本",thailand:"泰国",indonesia:"印度尼西亚"})[x.value]||x.label))],
       dailySegmentRows.map(r=>[r.key, ...DAILY_SEGMENTS.map(x=>detail(r.cells[x.value]))]),
       1
-    )}<p class="tiny">单元格为完课率 · 完课/开课。${esc(caption)}</p>`);
+    )}<p class="tiny">${t("cellRate")} ${esc(caption)}</p>`);
   }
 
   if(bucketKeys.length && !selectedLevel){
-    addSec("sec-daily-level", useHourly?"分小时 × Level":"分日 × Level", `<h2>${useHourly?"分小时 × Level":"分日 × Level"}</h2>${tableHTML(
-      [useHourly?"UTC 小时":"UTC 日期","L1","L2","L3","L4","合计"],
+    addSec("sec-daily-level", useHourly?t("secDailyLevelHour"):t("secDailyLevelDay"), `<h2>${useHourly?t("secDailyLevelHour"):t("secDailyLevelDay")}</h2>${tableHTML(
+      [useHourly?t("utcHour"):t("utcDate"),"L1","L2","L3","L4",t("total")],
       bucketKeys.map(k=>{
         const b=byBucket.get(k);
         return [k,detail(b[1]),detail(b[2]),detail(b[3]),detail(b[4]),detail(b.all)];
       }),
       1
-    )}<p class="tiny">按窗口内第一次 class_stage_start 的 UTC 时间入桶。${esc(caption)}</p>`);
+    )}<p class="tiny">${t("dailyLevelNote")} ${esc(caption)}</p>`);
   }
 
   if(countryRows.length){
-    addSec("sec-country", selectedLevel?currentLevel.label+" 分国家":"国家 × Level", `<h2>${selectedLevel?currentLevel.label+" 分国家":"国家 × Level"}</h2>${
+    addSec("sec-country", selectedLevel?t("secCountryOne", {level: currentLevel.label}):t("secCountry"), `<h2>${selectedLevel?t("secCountryOne", {level: currentLevel.label}):t("secCountry")}</h2>${
       selectedLevel
-        ? tableHTML(["国家","开课","完课","完课率"], countryRows.filter(([,v])=>v[selectedLevel].started>0).map(([c,v])=>[c,String(v[selectedLevel].started),String(v[selectedLevel].completed),rateText(v[selectedLevel])]),1)
-        : tableHTML(["国家","L1","L2","L3","L4","合计"], countryRows.map(([c,v])=>[c,detail(v[1]),detail(v[2]),detail(v[3]),detail(v[4]),detail(v.all)]),1)
-    }<p class="tiny">国家取课堂 trigger 事件 country 众数。${esc(caption)}</p>`);
+        ? tableHTML([t("country"),t("started"),t("completed"),t("completion")], countryRows.filter(([,v])=>v[selectedLevel].started>0).map(([c,v])=>[displayCountry(c),String(v[selectedLevel].started),String(v[selectedLevel].completed),rateText(v[selectedLevel])]),1)
+        : tableHTML([t("country"),"L1","L2","L3","L4",t("total")], countryRows.map(([c,v])=>[displayCountry(c),detail(v[1]),detail(v[2]),detail(v[3]),detail(v[4]),detail(v.all)]),1)
+    }<p class="tiny">${t("countryNote")} ${esc(caption)}</p>`);
   }
 
   if(coreRows.length){
-    addSec("sec-core-age", "核心年龄段用户完课情况", `
-      <h2>核心年龄段用户完课情况</h2>
+    addSec("sec-core-age", t("secCoreAge"), `
+      <h2>${t("secCoreAge")}</h2>
       <div class="grid g4" style="margin-bottom:12px">
-        <div class="stat info"><div class="k">5–8 岁用户</div><div class="v">${coreUserList.length}</div></div>
-        <div class="stat"><div class="k">完课用户</div><div class="v">${coreDoneUsers}</div><div class="k" style="margin-top:6px">${coreUserList.length?((coreDoneUsers/coreUserList.length)*100).toFixed(1)+"%":"—"} · 至少 1 节完课</div></div>
-        <div class="stat"><div class="k">开课课堂 · ${countText(coreByLevel.all)}</div><div class="v">${rateText(coreByLevel.all)}</div></div>
-        <div class="stat"><div class="k">占当前窗口开课量的百分比</div><div class="v">${allInWindow.length?((coreRows.length/allInWindow.length)*100).toFixed(1)+"%":"—"}</div><div class="k" style="margin-top:6px">${coreRows.length}/${allInWindow.length} 节</div></div>
+        <div class="stat info"><div class="k">${t("coreUsers")}</div><div class="v">${coreUserList.length}</div></div>
+        <div class="stat"><div class="k">${t("coreDone")}</div><div class="v">${coreDoneUsers}</div><div class="k" style="margin-top:6px">${coreUserList.length?((coreDoneUsers/coreUserList.length)*100).toFixed(1)+"%":"—"} · ${t("atLeastOneComplete")}</div></div>
+        <div class="stat"><div class="k">${t("coreClasses", {count: countText(coreByLevel.all)})}</div><div class="v">${rateText(coreByLevel.all)}</div></div>
+        <div class="stat"><div class="k">${t("coreShare")}</div><div class="v">${allInWindow.length?((coreRows.length/allInWindow.length)*100).toFixed(1)+"%":"—"}</div><div class="k" style="margin-top:6px">${coreRows.length}/${allInWindow.length} ${t("classes")}</div></div>
       </div>
       ${barChart(LEVELS.map(l=>l.label), LEVELS.map(l=>rate(coreByLevel[l.level])||0))}
       ${tableHTML(
-        ["Level","课程","用户数","完课用户","用户完课率","开课课堂","完课课堂","课堂完课率"],
+        ["Level",t("lesson"),t("users"),t("doneUsers"),t("coreUserRate"),t("started"),t("completed"),t("coreClassRate")],
         LEVELS.map(l=>{
           const u = coreLevelUsers[l.level];
           return [
             l.label,
-            l.name,
+            displayLessonName(l.name),
             String(u.users),
             String(u.done),
             u.users ? ((u.done/u.users)*100).toFixed(1)+"%" : "—",
@@ -18963,41 +19682,41 @@ function render(){
         }),
         2
       )}
-      <h3>5–8 岁用户的英文能力</h3>
-      ${coreAbilityRows.length ? barChart(coreAbilityRows.map(([a])=>a), coreAbilityRows.map(([,n])=>coreUserList.length?Number(((n/coreUserList.length)*100).toFixed(1)):0)) : ""}
+      <h3>${t("coreAbilityTitle")}</h3>
+      ${coreAbilityRows.length ? barChart(coreAbilityRows.map(([a])=>displayAbilityName(a)), coreAbilityRows.map(([,n])=>coreUserList.length?Number(((n/coreUserList.length)*100).toFixed(1)):0)) : ""}
       ${tableHTML(
-        ["英文能力","用户数","占 5–8 岁用户"],
-        coreAbilityRows.map(([a,n])=>[a, String(n), coreUserList.length?((n/coreUserList.length)*100).toFixed(1)+"%":"—"]),
+        [t("abilityCol"),t("users"),t("coreAbilityShare")],
+        coreAbilityRows.map(([a,n])=>[displayAbilityName(a), String(n), coreUserList.length?((n/coreUserList.length)*100).toFixed(1)+"%":"—"]),
         1
       )}
-      ${coreAbilityLevelRows.length ? `<h3>各 Level × 英文能力</h3>`+tableHTML(
-        ["Level","英文能力","用户数","开课课堂","完课课堂","课堂完课率"],
-        coreAbilityLevelRows,
+      ${coreAbilityLevelRows.length ? `<h3>${t("coreAbilityLevel")}</h3>`+tableHTML(
+        ["Level",t("abilityCol"),t("users"),t("started"),t("completed"),t("coreClassRate")],
+        coreAbilityLevelRows.map(r=>[r[0], displayAbilityName(r[1]), r[2], r[3], r[4], r[5]]),
         2
       ) : ""}
-      <p class="tiny">核心年龄=Onboarding 单岁 5 / 6 / 7 / 8；旧口径只有年龄段时计入 6–8，3–5 无法拆出 5 岁，不计入。用户按独立 user 去重，一人上了多个 Level 会分别计入各 Level。课堂完课率与上方同一口径。不受上方「用户年龄」下拉影响，随国家、英文能力、设备档位和「排除 13+」重算。${esc(caption)}</p>
+      <p class="tiny">${t("coreNote")} ${esc(caption)}</p>
     `);
   }
 
   if(ageRows.length){
-    addSec("sec-age", "各年龄段整体完课率", `<h2>各年龄段整体完课率</h2><div class="legend"><span><i class="dot" style="background:var(--ok)"></i>核心年龄 5 / 6 / 7 / 8，以及旧口径 6–8</span><span><i class="dot" style="background:var(--accent)"></i>其他年龄</span></div>${barChart(ageRows.map(([a])=>a||"未知"), ageRows.map(([,m])=>rate(m)||0), true)}${tableHTML(["年龄","开课","完课","完课率"], ageRows.map(([a,m])=>[a||"年龄未知",String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">横轴：Onboarding 年龄${useYearlyAge?"（9/14 起按单岁 + 13+ 细拆）":"段"}；纵轴：课堂完课率（%）。绿色柱是核心年龄。${useYearlyAge?"此窗口起点在 9/14 及以后，按每年一档。仍看到 3–5 / 6–8 / 9–12 的，是改版前填的旧口径。":"窗口起点早于 9/14，仍按 3–5 / 6–8 / 9–12。"} ${esc(caption)}</p>`);
+    addSec("sec-age", t("secAge"), `<h2>${t("secAge")}</h2><div class="legend"><span><i class="dot" style="background:var(--ok)"></i>${t("coreLegend")}</span><span><i class="dot" style="background:var(--accent)"></i>${t("otherAges")}</span></div>${barChart(ageRows.map(([a])=>displayAge(a||"未知")), ageRows.map(([,m])=>rate(m)||0), true)}${tableHTML([t("ageCol"),t("started"),t("completed"),t("completion")], ageRows.map(([a,m])=>[displayAge(a||"年龄未知"),String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">${useYearlyAge?t("ageAxisYear"):t("ageAxisBand")} ${esc(caption)}</p>`);
     if(abilityRows.length){
-      addSec("sec-ability", "英文能力完课率", `<h2>英文能力完课率</h2>${barChart(abilityRows.map(([a])=>a), abilityRows.map(([,m])=>rate(m)||0))}${tableHTML(["英文能力","开课","完课","完课率"], abilityRows.map(([a,m])=>[a,String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">能力字段覆盖近期干净样本，更早窗口可能偏少。${esc(caption)}</p>`);
+      addSec("sec-ability", t("secAbility"), `<h2>${t("secAbility")}</h2>${barChart(abilityRows.map(([a])=>displayAbilityName(a)), abilityRows.map(([,m])=>rate(m)||0))}${tableHTML([t("abilityCol"),t("started"),t("completed"),t("completion")], abilityRows.map(([a,m])=>[displayAbilityName(a),String(m.started),String(m.completed),rateText(m)]),1)}<p class="tiny">${t("abilityNote")} ${esc(caption)}</p>`);
     }
   }
 
   if(ageAbilityRows.length){
     const yearTable = ageAbilityYearRows.length
-      ? `<h3>9/14 及之后 · 单岁年龄</h3>${tableHTML(["交叉","开课","完课","完课率"], ageAbilityYearRows.map(([l,m])=>[l,String(m.started),String(m.completed),rateText(m)]),1)}`
+      ? `<h3>${t("yearAgeTitle")}</h3>${tableHTML([t("cross"),t("started"),t("completed"),t("completion")], ageAbilityYearRows.map(([l,m])=>[displayAge(crossAge(l))+" × "+displayAbilityName(crossAbility(l)),String(m.started),String(m.completed),rateText(m)]),1)}`
       : "";
     const bandTable = ageAbilityBandRows.length
-      ? `${ageAbilityYearRows.length ? "<h3>历史年龄段</h3>" : ""}${tableHTML(["交叉","开课","完课","完课率"], ageAbilityBandRows.map(([l,m])=>[l,String(m.started),String(m.completed),rateText(m)]),1)}`
+      ? `${ageAbilityYearRows.length ? "<h3>"+t("histAgeTitle")+"</h3>" : ""}${tableHTML([t("cross"),t("started"),t("completed"),t("completion")], ageAbilityBandRows.map(([l,m])=>[displayAge(crossAge(l))+" × "+displayAbilityName(crossAbility(l)),String(m.started),String(m.completed),rateText(m)]),1)}`
       : "";
-    addSec("sec-age-ability", "年龄 × 英文能力", `<h2>年龄 × 英文能力</h2>${yearTable}${bandTable}<p class="tiny">只统计窗口内已回填英文能力的课堂。${useYearlyAge ? "窗口起点在 9/14 及以后时，上面是单岁交叉，下面是改版前未拆开的年龄段。" : ""}${esc(caption)}</p>`);
+    addSec("sec-age-ability", t("secAgeAbility"), `<h2>${t("secAgeAbility")}</h2>${yearTable}${bandTable}<p class="tiny">${t("ageAbilityNote")}${useYearlyAge ? " "+t("ageAbilitySplit") : ""} ${esc(caption)}</p>`);
   }
 
   if(deviceInner){
-    addSec("sec-device", "设备档位 x 完课率", deviceInner);
+    addSec("sec-device", t("secDevice"), deviceInner);
   }
 
   if(!nav.some(item=>item.id===state.section)) state.section = nav[0] ? nav[0].id : "sec-rate";
@@ -19029,6 +19748,14 @@ function bindSectionNav(){
   items.forEach(el=>io.observe(el));
 }
 
+document.getElementById("lang-switch").addEventListener("click", e=>{
+  const opt = e.target.closest("[data-lang]");
+  const next = opt ? opt.dataset.lang : (state.lang==="zh" ? "en" : "zh");
+  if(next===state.lang) return;
+  state.lang = next;
+  try { localStorage.setItem("trial-board-lang", next); } catch(err){}
+  render();
+});
 document.getElementById("board-tabs").addEventListener("click", e=>{
   const btn = e.target.closest("[data-board]"); if(!btn) return;
   if(state.board===btn.dataset.board) return;

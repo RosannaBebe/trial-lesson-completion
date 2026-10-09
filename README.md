@@ -2,7 +2,7 @@
 
 Dino English 体验课 L1–L4 完课率看板。可按 UTC 时间窗、人群国家、年龄、英文能力筛选，并对照上一相同周期。
 
-打开 GitHub Pages 即可查看，无需安装依赖：
+打开 GitHub Pages 即可查看，无需安装依赖。右上角可切换中文 / English，默认中文。
 
 https://rosannabebe.github.io/trial-lesson-completion/
 
