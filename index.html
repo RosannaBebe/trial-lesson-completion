@@ -16900,12 +16900,14 @@ const FOCUS_COUNTRIES = [
   {name:"越南", short:"越南", color:"#2a8f6f"},
   {name:"韩国", short:"韩国", color:"#c47b1a"},
   {name:"沙特阿拉伯", short:"沙特", color:"#7b5ea7"},
+  {name:"日本", short:"日本", color:"#c45c6a"},
 ];
 const PROFILE_COUNTRIES = [
   {name:"马来西亚", short:"马来"},
   {name:"越南", short:"越南"},
   {name:"韩国", short:"韩国"},
   {name:"沙特阿拉伯", short:"沙特"},
+  {name:"日本", short:"日本"},
   {name:"泰国", short:"泰国"},
   {name:"印度尼西亚", short:"印尼"},
 ];
@@ -16929,7 +16931,7 @@ const AGE_ORDER = ["3–5","6–8","9–12","13–17","18+","13+","年龄未知"
 const AGE_YEAR_ORDER = ["3","4","5","6","7","8","9","10","11","12","13","14","15","13+","3–5","6–8","9–12","13–17","18+","年龄未知",""];
 const AGE_LEVEL_YEARS = ["3","4","5","6","7","8","9","10","11","12","14","15"];
 const AGE_YEAR_CUTOFF = Date.parse("2026-09-14T00:00:00Z");
-const COUNTRY_ORDER = ["马来西亚","越南","韩国","沙特阿拉伯","泰国","印度尼西亚"];
+const COUNTRY_ORDER = ["马来西亚","越南","韩国","沙特阿拉伯","日本","泰国","印度尼西亚"];
 const DAILY_SEGMENTS = [
   {value:"all",label:"全量"},
   {value:"malaysia",label:"马来"},
@@ -16966,6 +16968,7 @@ const COUNTRY_OPTIONS = [
   {value:"越南",label:"越南"},
   {value:"韩国",label:"韩国"},
   {value:"沙特阿拉伯",label:"沙特"},
+  {value:"日本",label:"日本"},
   {value:"泰国",label:"泰国"},
   {value:"印度尼西亚",label:"印尼"},
 ];
@@ -17672,7 +17675,7 @@ function dimItems(currMap, prevMap, currN, prevN){
   }
   return items;
 }
-const ANALYSIS_FOCUS = ["马来西亚","越南","韩国","沙特阿拉伯"];
+const ANALYSIS_FOCUS = ["马来西亚","越南","韩国","沙特阿拉伯","日本"];
 const ANALYSIS_WATCH = ["泰国","印度尼西亚"];
 function rowsMetric(rows, end){
   const metric = emptyMetric();
@@ -17770,7 +17773,7 @@ function countryAnalysisText(currRows, prevRows, currMetric, prevMetric, rangeEn
     if(line) dragLines.push(line);
   }
   const parts = [];
-  parts.push(focusLines.length ? "马来、越南、韩国、沙特："+focusLines.join("；") : "马来、越南、韩国、沙特在这个窗口几乎没有开课");
+  parts.push(focusLines.length ? "马来、越南、韩国、沙特、日本："+focusLines.join("；") : "马来、越南、韩国、沙特、日本在这个窗口几乎没有开课");
   if(dragLines.length) parts.push("泰国、印尼或其他国家里，把整体往下拉的是"+joinCn(dragLines));
   return parts.join("。")+"。";
 }
@@ -18185,8 +18188,8 @@ function renderHomeworkView(ctx){
     `);
   }
 
-  addSec("sec-hw-focus", "马来 / 越南 / 韩国 / 沙特", `
-    <h2>马来 / 越南 / 韩国 / 沙特</h2>
+  addSec("sec-hw-focus", "马来 / 越南 / 韩国 / 沙特 / 日本", `
+    <h2>马来 / 越南 / 韩国 / 沙特 / 日本</h2>
     ${tableHTML(
       ["国家","开课","完课","课程完课率","进入练习","进入 word & sentences","进入 speaking","进入 listening","课后练习完成率","word & sentences 完成率","speaking 完成率","listening 完成率","完成AI课+3个课后练习 / 开课","完成AI课+3个课后练习 / 完课"],
       FOCUS_COUNTRIES.map(c=>{
@@ -18459,7 +18462,7 @@ function render(){
   }).join("");
   addSec("sec-analysis", "完课率分析", `
     <h2>完课率分析</h2>
-    <p class="tiny">对照上一相同时长周期 ${esc(prevLabel)}。改 UTC 窗口或筛选后，这一节按当前数字重写。先写马来、越南、韩国、沙特的完课率和开课占比；泰国、印尼或其他国家只有在把本级别完课率往下拉时才写出。核心用户按 5–8 岁看占比和完课率相对上期的变化，并和这四个国家交叉。英文能力只在已回填的课里对比，回填不足时不拿能力结构解释完课。L3 / L4 另写距 50% 的缺口。</p>
+    <p class="tiny">对照上一相同时长周期 ${esc(prevLabel)}。改 UTC 窗口或筛选后，这一节按当前数字重写。先写马来、越南、韩国、沙特、日本的完课率和开课占比；泰国、印尼或其他国家只有在把本级别完课率往下拉时才写出。核心用户按 5–8 岁看占比和完课率相对上期的变化，并和这五个国家交叉。英文能力只在已回填的课里对比，回填不足时不拿能力结构解释完课。L3 / L4 另写距 50% 的缺口。</p>
     ${analysisCards}
   `);
 
@@ -18695,9 +18698,9 @@ function render(){
   }
 
   if(totals.started>0){
-    addSec("sec-focus", "马来 / 越南 / 韩国 / 沙特 · 分 Level 完课率", `
-      <h2>马来 / 越南 / 韩国 / 沙特 · 分 Level 完课率</h2>
-      <div class="grid g4" style="margin-bottom:12px">
+    addSec("sec-focus", "马来 / 越南 / 韩国 / 沙特 / 日本 · 分 Level 完课率", `
+      <h2>马来 / 越南 / 韩国 / 沙特 / 日本 · 分 Level 完课率</h2>
+      <div class="grid g5" style="margin-bottom:12px">
         ${FOCUS_COUNTRIES.map(c=>{
           const m = focusByCountry[c.name].all;
           return `<div class="stat"><div class="k">${c.short}合计 · ${countText(m)}</div><div class="v">${rateText(m)}</div>${cmpHTML(m, prevFocusByCountry[c.name].all)}</div>`;
@@ -18712,7 +18715,7 @@ function render(){
         }))
       )}
       ${tableHTML(
-        ["Level","课程","马来","越南","韩国","沙特"],
+        ["Level","课程", ...FOCUS_COUNTRIES.map(c=>c.short)],
         LEVELS.map(l=>[
           l.label,
           l.name,
@@ -18721,7 +18724,7 @@ function render(){
         2,
         2
       )}
-      <p class="tiny">横轴：体验课 Level；纵轴：课堂完课率（%）。只看马来西亚、越南、韩国、沙特阿拉伯，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点，+ 为上升，− 为下降。</p>
+      <p class="tiny">横轴：体验课 Level；纵轴：课堂完课率（%）。只看马来西亚、越南、韩国、沙特阿拉伯、日本，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点，+ 为上升，− 为下降。</p>
     `);
     addSec("sec-profile", "核心国家 · 年龄 × 英文能力"+ (selectedLevel?" · "+currentLevel.label:""), `
       <h2>核心国家 · 年龄 × 英文能力${selectedLevel?" · "+currentLevel.label:""}</h2>
