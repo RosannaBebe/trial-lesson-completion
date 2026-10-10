@@ -17945,8 +17945,8 @@ tierMixTitle:"各 Level · 完课 / 未完课用户的档位占比",
 tierMixNote:"完课用户：该 Level 窗口内至少 1 节完课；未完课用户：该 Level 有开课且 0 节完课。同一用户在同一 Level 只计一次。格子是占该组用户% · 人数。",
 doneUsersAxis:"横轴：体验课 Level；纵轴：该档位占该 Level 完课用户（%）。",
 missUsersAxis:"横轴：体验课 Level；纵轴：该档位占该 Level 未完课用户（%）。",
-tierCountryTitle:"各档位 · 国家占比",
-tierCountryNote:"各档位内部的开课国家结构。横轴：设备档位；纵轴：该国占该档位开课（%）。格子是占该档位开课% · 开课数。",
+tierCountryTitle:"各国家 · 档位占比",
+tierCountryNote:"每个国家内部的设备档位结构。同一国家五档合计 100%。横轴：设备档位；纵轴：该档位占该国开课（%）。格子是占该国开课% · 开课数。",
 tierCountryRate:"上表：档位 × 核心国家完课率。",
 tierCountryLevel:"档位 × 国家 × Level：每个格子是完课率 · 完课/开课 · 未完课数。",
 doneUserCol:"完课用户",
@@ -18215,8 +18215,8 @@ tierMixTitle:"Each level · tier mix of completed / incomplete learners",
 tierMixNote:"Completed learner: at least 1 complete in that level in the window. Incomplete learner: started that level and 0 completes. One user is counted once per level. Cells are % of that group · headcount.",
 doneUsersAxis:"X-axis: trial level; Y-axis: that tier’s share of completed learners in the level (%).",
 missUsersAxis:"X-axis: trial level; Y-axis: that tier’s share of incomplete learners in the level (%).",
-tierCountryTitle:"Each tier · country mix",
-tierCountryNote:"Country mix inside each tier. X-axis: device tier; Y-axis: that country’s share of the tier’s starts (%). Cells are % of that tier’s starts · start count.",
+tierCountryTitle:"Each country · device-tier mix",
+tierCountryNote:"Device-tier mix inside each country. The five tiers of one country add up to 100%. X-axis: device tier; Y-axis: that tier’s share of the country’s starts (%). Cells are % of that country’s starts · start count.",
 tierCountryRate:"Above: tier × core-country completion.",
 tierCountryLevel:"Tier × country × level: each cell is completion · completed/started · incomplete count.",
 doneUserCol:"Completed learners",
@@ -20006,6 +20006,14 @@ function render(){
           }
           return n;
         };
+        const countryTotal = (country)=>{
+          let n = 0;
+          for(const item of deviceRows){
+            const itemCountry = profileNames.has(item.country) ? item.country : "其他";
+            if(itemCountry===country) n += 1;
+          }
+          return n;
+        };
         const visible = TIER_ORDER.filter(t=>(tierNow.get(t)||emptyMetric()).started);
         const shareText = (n, denom)=> denom && n ? ((n/denom)*100).toFixed(1)+"% · "+n : "—";
         return `
@@ -20016,18 +20024,19 @@ function render(){
               name: c.short,
               color: shareColors[i],
               data: visible.map(t=>{
-                const denom = (tierNow.get(t)||emptyMetric()).started;
+                const denom = countryTotal(c.name);
                 const n = countAt(t, c.name);
                 return denom ? Number(((n/denom)*100).toFixed(1)) : 0;
               }),
             })).filter(s=>s.data.some(v=>v>0))
           )}
           ${tableHTML(
-            [t("deviceCol"),t("started"), ...shareCountries.map(c=>t("countryShareCol", {name: c.short}))],
-            visible.map(tierName=>{
-              const denom = (tierNow.get(tierName)||emptyMetric()).started;
-              return [displayTier(tierName), String(denom), ...shareCountries.map(c=>shareText(countAt(tierName, c.name), denom))];
-            }),
+            [t("country"),t("started"), ...visible.map(displayTier)],
+            shareCountries.map(c=>{
+              const denom = countryTotal(c.name);
+              if(!denom) return null;
+              return [c.short, String(denom), ...visible.map(tierName=>shareText(countAt(tierName, c.name), denom))];
+            }).filter(Boolean),
             1
           )}
           <p class="tiny">${t("tierCountryNote")}</p>
