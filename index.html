@@ -29,9 +29,12 @@ h3{font-size:14px;margin:18px 0 8px}
 .g1{grid-template-columns:1fr}
 .g2{grid-template-columns:1fr 1.4fr}
 .funnel-pair{grid-template-columns:1fr 1fr}
+.group-bars-wrap{position:relative}
 .group-bars{display:flex;align-items:flex-end;gap:18px;height:230px;padding:8px 4px 0}
 .group{flex:1;min-width:72px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
-.group .cols{display:flex;align-items:flex-end;gap:4px;width:100%;height:180px}
+.group .cols{display:flex;align-items:flex-end;gap:4px;width:100%;height:180px;position:relative}
+.rate-baseline{position:absolute;left:0;right:0;height:0;border-top:1px dashed #c47b1a;pointer-events:none;z-index:2}
+.rate-baseline span{position:absolute;left:0;top:-14px;font-size:10px;color:#c47b1a;background:var(--bg);padding:0 4px;white-space:nowrap}
 .group .col-wrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
 .group .col{width:100%;min-height:2px}
 .group .n{font-size:10px;margin-bottom:3px;white-space:nowrap}
@@ -17776,6 +17779,7 @@ noStarts:"<b>这个 UTC 窗口没有开课</b>　可放宽时间窗，或把人�
 secRate:"体验课完课率（{segment}）",
 secAnalysis:"完课率分析",
 secFocus:"马来 / 越南 / 韩国 / 沙特 / 日本 · 分 Level 完课率",
+baseline50:"50%",
 secProfile:"核心国家 · 年龄 × 英文能力",
 secFunnel:"Template触达漏斗",
 secVersion:"版本对比 · V1 vs V2",
@@ -18044,6 +18048,7 @@ noStarts:"<b>No starts in this UTC window</b>　Widen the window, or switch coun
 secRate:"Trial completion ({segment})",
 secAnalysis:"Completion analysis",
 secFocus:"Malaysia / Vietnam / Korea / Saudi / Japan · completion by level",
+baseline50:"50%",
 secProfile:"Core countries · age × English ability",
 secFunnel:"Template reach funnel",
 secVersion:"Version comparison · V1 vs V2",
@@ -19001,9 +19006,10 @@ function versionShareChart(v1rows, v2rows, keyFn, preferred, maxCats){
     {name:"V2", color:"#e6a23c", data:data2},
   ]);
 }
-function groupBarChart(categories, series){
+function groupBarChart(categories, series, baseline){
+  const line = baseline==null ? "" : `<div class="rate-baseline" style="bottom:calc(6px + 1.15em + ${((baseline/100)*160).toFixed(1)}px)"><span>${esc(t("baseline50"))}</span></div>`;
   return `<div class="legend">` + series.map(s=>`<span><i class="dot" style="background:${s.color}"></i>${esc(s.name)}</span>`).join("") + `</div>
-    <div class="group-bars">` + categories.map((cat,i)=>`
+    <div class="group-bars-wrap">${line}<div class="group-bars">` + categories.map((cat,i)=>`
       <div class="group">
         <div class="cols">` + series.map(s=>{
           const v = s.data[i] || 0;
@@ -19011,7 +19017,7 @@ function groupBarChart(categories, series){
           return `<div class="col-wrap"><div class="n">${v.toFixed(1)}%</div><div class="col" style="height:${h}px;background:${s.color}"></div></div>`;
         }).join("") + `</div>
         <div class="l">${esc(cat)}</div>
-      </div>`).join("") + `</div>`;
+      </div>`).join("") + `</div></div>`;
 }
 
 function lineChart(categories, series){
@@ -20116,7 +20122,8 @@ function render(){
           name: displayCountryShort(c.name),
           color: c.color,
           data: LEVELS.map(l=>rate(focusByCountry[c.name][l.level])||0),
-        }))
+        })),
+        50
       )}
       ${tableHTML(
         ["Level",t("lesson"), ...FOCUS_COUNTRIES.map(c=>displayCountryShort(c.name))],
@@ -20128,7 +20135,7 @@ function render(){
         2,
         2
       )}
-      <p class="tiny">${isEn() ? "X-axis: trial level; Y-axis: class completion (%). Malaysia, Vietnam, Korea, Saudi Arabia, and Japan only. Recalculates with the UTC window, age, ability, and “exclude 13+”; ignores the country filter above. Cells are completion · completed/started. Parentheses are percentage points vs the previous period of the same length." : "横轴：体验课 Level；纵轴：课堂完课率（%）。只看马来西亚、越南、韩国、沙特阿拉伯、日本，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点，+ 为上升，− 为下降。"}</p>
+      <p class="tiny">${isEn() ? "X-axis: trial level; Y-axis: class completion (%). The dashed line is the 50% target. Malaysia, Vietnam, Korea, Saudi Arabia, and Japan only. Recalculates with the UTC window, age, ability, and “exclude 13+”; ignores the country filter above. Cells are completion · completed/started. Parentheses are percentage points vs the previous period of the same length." : "横轴：体验课 Level；纵轴：课堂完课率（%）。橙色虚线是 50% 完课目标。只看马来西亚、越南、韩国、沙特阿拉伯、日本，随 UTC 时间窗、用户年龄、英文能力和「排除 13+ 用户」重算，不受上方人群国家下拉影响。单元格为完课率 · 完课/开课，括号是相对上一相同长度周期的百分点，+ 为上升，− 为下降。"}</p>
     `);
     addSec("sec-profile", t("secProfile")+ (selectedLevel?" · "+currentLevel.label:""), `
       <h2>${t("secProfile")}${selectedLevel?" · "+currentLevel.label:""}</h2>
